@@ -1,0 +1,9 @@
+# Generated fixture data from registries
+fixtures/
+
+# Ruby dependencies
+vendor/
+.bundle/
+
+# RSpec output
+.rspec_status
