@@ -25,7 +25,7 @@ REGISTRY="gcr.io/datadoghq/apm-inject"
 ./src/main.sh $REGISTRY
 
 # View results
-bundle exec rspec spec/
+bundle exec rspec
 ```
 
 ## Architecture
@@ -70,7 +70,7 @@ REGISTRY="gcr.io/datadoghq/apm-inject"
 ./src/main.sh $REGISTRY
 
 # Run tests for all fixtures
-bundle exec rspec spec/
+bundle exec rspec
 
 # Check specific registry results
 ls fixtures/gcr_io_datadoghq_apm_inject/
@@ -132,7 +132,7 @@ REGISTRY="gcr.io/datadoghq/apm-inject"
 bundle exec rspec
 
 # Test specific registry (after generating fixtures)
-bundle exec rspec --example "gcr.io/datadoghq/apm-inject"
+bundle exec rspec --example $REGISTRY
 ```
 
 ### Code Quality
@@ -153,10 +153,24 @@ shellcheck src/*.sh
 This tool works with Google Container Registry (GCR) and Artifact Registry:
 
 ```bash
-./src/main.sh "gcr.io/datadoghq/apm-inject"
-./src/main.sh "gcr.io/datadoghq/dd-lib-ruby-init"
-...
+# Common registries to validate
+REGISTRIES=(
+  "gcr.io/datadoghq/apm-inject"
+  "gcr.io/datadoghq/dd-lib-java-init"
+  "gcr.io/datadoghq/dd-lib-js-init"
+  "gcr.io/datadoghq/dd-lib-python-init"
+  "gcr.io/datadoghq/dd-lib-dotnet-init"
+  "gcr.io/datadoghq/dd-lib-ruby-init"
+  "gcr.io/datadoghq/dd-lib-php-init"
+)
 
+# Validate all registries
+for registry in "${REGISTRIES[@]}"; do
+  ./src/main.sh "$registry"
+done
+
+# Or validate a specific registry
+./src/main.sh "gcr.io/datadoghq/apm-inject"
 ```
 
 ### Expected Mutable Tag Logic
