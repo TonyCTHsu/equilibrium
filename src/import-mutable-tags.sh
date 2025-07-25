@@ -16,6 +16,9 @@ OUTPUT_DIR="fixtures/$SAFE_NAME"
 # Create output directory if it doesn't exist
 mkdir -p "$OUTPUT_DIR"
 
+# Store original registry name for test filtering
+echo "$REGISTRY" > "$OUTPUT_DIR/registry.txt"
+
 # Remove canonical tags and v-prefixed tags
 gcloud container images list-tags "$REGISTRY" \
   --filter="tags:*" \

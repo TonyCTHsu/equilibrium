@@ -18,8 +18,11 @@ bundle install
 gcloud auth login
 gcloud config set project YOUR_PROJECT_ID
 
+# Set registry to validate
+REGISTRY="gcr.io/datadoghq/apm-inject"
+
 # Run validation
-./src/main.sh gcr.io/datadoghq/apm-inject
+./src/main.sh $REGISTRY
 
 # View results
 bundle exec rspec spec/
@@ -60,8 +63,11 @@ fixtures/
 ### Basic Workflow
 
 ```bash
-# Validate a single registry
-./src/main.sh gcr.io/datadoghq/apm-inject
+# Set registry to validate
+REGISTRY="gcr.io/datadoghq/apm-inject"
+
+# Validate the registry
+./src/main.sh $REGISTRY
 
 # Run tests for all fixtures
 bundle exec rspec spec/
@@ -73,11 +79,14 @@ ls fixtures/gcr_io_datadoghq_apm_inject/
 ### Individual Commands
 
 ```bash
+# Set registry to work with
+REGISTRY="gcr.io/datadoghq/apm-inject"
+
 # Fetch semantic tags and compute mappings
-./src/import-semantic-tags.sh gcr.io/datadoghq/apm-inject
+./src/import-semantic-tags.sh $REGISTRY
 
 # Fetch actual mutable tags
-./src/import-mutable-tags.sh gcr.io/datadoghq/apm-inject
+./src/import-mutable-tags.sh $REGISTRY
 
 # Compute mappings from existing semantic data
 ruby src/compute.rb fixtures/gcr_io_datadoghq_apm_inject/semantic_versions.json
@@ -101,8 +110,11 @@ bundle install
 # Configure gcloud
 gcloud auth login
 
+# Set registry for testing
+REGISTRY="gcr.io/datadoghq/apm-inject"
+
 # Verify access
-gcloud container images list-tags gcr.io/datadoghq/apm-inject --limit=1
+gcloud container images list-tags $REGISTRY --limit=1
 ```
 
 ### Testing
@@ -110,14 +122,17 @@ gcloud container images list-tags gcr.io/datadoghq/apm-inject --limit=1
 **Important**: Data must be fetched and ready before running tests. Generate fixtures first using `./src/main.sh` with your target registry.
 
 ```bash
+# Set registry for testing
+REGISTRY="gcr.io/datadoghq/apm-inject"
+
 # Generate test data first
-./src/main.sh gcr.io/datadoghq/apm-inject
+./src/main.sh $REGISTRY
 
 # Run all tests
-bundle exec rspec spec/
+bundle exec rspec
 
 # Test specific registry (after generating fixtures)
-REGISTRY_PARAM="gcr.io/datadoghq/apm-inject" bundle exec rspec spec/
+bundle exec rspec --example "gcr.io/datadoghq/apm-inject"
 ```
 
 ### Code Quality
@@ -138,9 +153,10 @@ shellcheck src/*.sh
 This tool works with Google Container Registry (GCR) and Artifact Registry:
 
 ```bash
-./src/main.sh gcr.io/datadoghq/apm-inject
-./src/main.sh gcr.io/datadoghq/dd-lib-ruby-init
-./src/main.sh gcr.io/datadoghq/dd-trace-java
+./src/main.sh "gcr.io/datadoghq/apm-inject"
+./src/main.sh "gcr.io/datadoghq/dd-lib-ruby-init"
+...
+
 ```
 
 ### Expected Mutable Tag Logic

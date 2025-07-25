@@ -17,12 +17,12 @@ echo "Output directory: fixtures/${SAFE_NAME}/"
 echo "Step 1: Importing semantic versioned tags..."
 ./src/import-semantic-tags.sh "$REGISTRY"
 
-# Step 2: Import mutable tags from registry  
+# Step 2: Import mutable tags from registry
 echo "Step 2: Importing mutable tags..."
 ./src/import-mutable-tags.sh "$REGISTRY"
 
 # Step 3: Run validation tests
 echo "Step 3: Running validation tests..."
-bundle exec rspec spec/
+bundle exec rspec --example "$REGISTRY"
 
 echo "Workflow completed successfully!"
