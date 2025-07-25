@@ -47,15 +47,21 @@ end
 # Usage
 if __FILE__ == $0
   if ARGV.length < 1
-    puts "Usage: #{$0} <tag_digest_mapping.json> [output_file]"
+    puts "Usage: #{$0} <semantic_versions.json> [output_file]"
     exit 1
   end
 
   json_file = ARGV[0]
-  output_file = ARGV[1] || "fixtures/computed_mutable_tags.json"
+  output_file = ARGV[1] || begin
+    puts "Error: output_file required when not called from main workflow"
+    puts "Usage: #{$0} <semantic_versions.json> <output_file>"
+    exit 1
+  end
 
   result = convert_tag_mapping(json_file)
 
-  File.write(output_file, JSON.pretty_generate(result))
+  # Sort keys in descending order for better human readability
+  sorted_result = result.sort_by { |k, v| k }.reverse.to_h
+  File.write(output_file, JSON.pretty_generate(sorted_result))
   puts "Written mutable tag mapping to #{output_file}"
 end

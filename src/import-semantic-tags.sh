@@ -22,6 +22,11 @@ gcloud container images list-tags "$REGISTRY" \
   --flatten="tags" \
   --format=json | \
   jq 'map({(.tags): .digest}) | add' | \
-  jq 'with_entries(select(.key | test("^[0-9]+\\.[0-9]+\\.[0-9]+$")))' > "$OUTPUT_DIR/tag_digest_mapping.json" 
+  jq 'with_entries(select(.key | test("^[0-9]+\\.[0-9]+\\.[0-9]+$"))) |
+      to_entries |
+      sort_by(.key) |
+      reverse |
+      from_entries' > "$OUTPUT_DIR/semantic_versions.json"
 
-ruby src/compute.rb "$OUTPUT_DIR/tag_digest_mapping.json" "$OUTPUT_DIR/computed_mutable_tags.json" 
+# Compute the mutable tags from canonical tags
+ruby src/compute.rb "$OUTPUT_DIR/semantic_versions.json" "$OUTPUT_DIR/expected_mutable_tags.json"

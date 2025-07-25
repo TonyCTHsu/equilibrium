@@ -22,4 +22,8 @@ gcloud container images list-tags "$REGISTRY" \
   --flatten="tags" \
   --format=json | \
   jq 'map({(.tags): .digest}) | add' | \
-  jq 'with_entries(select(.key | (test("^v?[0-9]+\\.[0-9]+\\.[0-9]+$") | not) and (test("^v") | not)))' > "$OUTPUT_DIR/mutable_tag_mapping.json"
+  jq 'with_entries(select(.key | (test("^v?[0-9]+\\.[0-9]+\\.[0-9]+$") | not) and (test("^v") | not))) |
+      to_entries |
+      sort_by(.key) |
+      reverse |
+      from_entries' > "$OUTPUT_DIR/actual_mutable_tags.json"
