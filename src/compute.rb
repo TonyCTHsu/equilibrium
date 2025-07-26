@@ -5,41 +5,32 @@ require "json"
 def convert_tag_mapping(json_file)
   data = JSON.parse(File.read(json_file))
 
-  versions = data.keys.map { |v| Gem::Version.new(v) }.sort.reverse
+  latest_version = nil
+  major_versions = {}
+  minor_versions = {}
 
+  # Single pass to find all maximums
+  data.keys.each do |version_str|
+    version = Gem::Version.new(version_str)
+
+    # Track overall latest
+    latest_version = version if !latest_version || version > latest_version
+
+    # Track latest for each major
+    major = version.segments[0]
+    major_versions[major] = version if !major_versions[major] || version > major_versions[major]
+
+    # Track latest for each minor
+    major_minor = "#{version.segments[0]}.#{version.segments[1]}"
+    minor_versions[major_minor] = version if !minor_versions[major_minor] || version > minor_versions[major_minor]
+  end
+
+  # Build result
   result = {}
-
-  # Latest overall version
-  latest_version = versions.first
   result["latest"] = data[latest_version.to_s]
 
-  # Latest major versions (highest minor.patch for each major)
-  major_versions = {}
-  versions.each do |version|
-    major = version.segments[0]
-    if !major_versions[major] || version > major_versions[major]
-      major_versions[major] = version
-    end
-  end
-
-  major_versions.values.sort.reverse_each do |version|
-    major_tag = version.segments[0].to_s
-    result[major_tag] = data[version.to_s]
-  end
-
-  # Latest minor versions (highest patch for each major.minor)
-  minor_versions = {}
-  versions.each do |version|
-    major_minor = "#{version.segments[0]}.#{version.segments[1]}"
-    if !minor_versions[major_minor] || version > minor_versions[major_minor]
-      minor_versions[major_minor] = version
-    end
-  end
-
-  minor_versions.values.sort.reverse_each do |version|
-    minor_tag = "#{version.segments[0]}.#{version.segments[1]}"
-    result[minor_tag] = data[version.to_s]
-  end
+  major_versions.each { |_, v| result[v.segments[0].to_s] = data[v.to_s] }
+  minor_versions.each { |_, v| result["#{v.segments[0]}.#{v.segments[1]}"] = data[v.to_s] }
 
   result
 end
