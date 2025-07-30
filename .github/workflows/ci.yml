@@ -23,6 +23,17 @@ jobs:
     - name: Run shellcheck
       run: shellcheck src/*.sh
 
+    - name: Check for trailing whitespace
+      run: |
+        echo "🔍 Checking for trailing whitespace..."
+        if git grep -I '[[:space:]]$' -- '*.rb' '*.sh' '*.md' '*.yml' '*.yaml' '*.json' || true; then
+          echo "❌ Trailing whitespace found in the above files"
+          echo "💡 Fix with: find . -name '*.rb' -o -name '*.sh' -o -name '*.md' -o -name '*.yml' -o -name '*.yaml' -o -name '*.json' | xargs sed -i 's/[[:space:]]*$//'"
+          exit 1
+        else
+          echo "✅ No trailing whitespace found"
+        fi
+
   test:
     runs-on: ubuntu-latest
     name: Test
