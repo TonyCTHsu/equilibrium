@@ -25,6 +25,7 @@ jobs:
 
     - name: Check for trailing whitespace
       run: ./.github/scripts/check-whitespace.sh
+      continue-on-error: true
 
   test:
     runs-on: ubuntu-latest

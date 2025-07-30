@@ -42,8 +42,8 @@ fi
 
 echo -e "${BLUE}🔍 Checking for trailing whitespace...${NC}"
 
-# Find files with trailing whitespace
-WHITESPACE_FILES=$(eval "find . -type f \\( $FIND_PATTERNS \\) -exec grep -l '[[:space:]]$' {} \\; 2>/dev/null" || true)
+# Find files with trailing whitespace (exclude vendor and other directories)
+WHITESPACE_FILES=$(eval "find . -type f \\( $FIND_PATTERNS \\) -not -path './vendor/*' -not -path './.bundle/*' -not -path './node_modules/*' -not -path './.git/*' -exec grep -l '[[:space:]]$' {} \\; 2>/dev/null" || true)
 
 if [ -n "$WHITESPACE_FILES" ]; then
     echo -e "${RED}❌ Trailing whitespace found in the following files:${NC}"
