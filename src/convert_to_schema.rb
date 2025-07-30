@@ -20,7 +20,7 @@ end
 data = JSON.parse(File.read(input_file))
 
 # Extract image name without registry (e.g., "gcr.io/datadoghq/apm-inject" -> "apm-inject")
-name_only = registry.split('/').last
+name_only = registry.split("/").last
 
 images = data.map do |tag, digest|
   {
@@ -41,7 +41,7 @@ if errors.empty?
   puts "✓ Schema validation passed"
 else
   puts "✗ Schema validation failed:"
-  errors.each { |error| puts "  #{error['error']}" }
+  errors.each { |error| puts "  #{error["error"]}" }
   exit 1
 end
 

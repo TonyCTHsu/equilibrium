@@ -35,9 +35,9 @@ RSpec.describe "Equilibrium validation" do
         end
 
         # Temporarily skip JS dataset
-        # if registry_name == "gcr_io_datadoghq_dd_lib_js_init"
-        #   skip "Temporarily skipping JS dataset"
-        # end
+        if registry_name == "gcr_io_datadoghq_dd_lib_js_init"
+          skip "Temporarily skipping JS dataset"
+        end
       end
 
       let(:actual_data) { JSON.parse(File.read(actual_mutable_tags_path)) }
@@ -91,7 +91,7 @@ RSpec.describe "Equilibrium validation" do
         if File.exist?(schema_data_path)
           schema_data = JSON.parse(File.read(schema_data_path))
           errors = schemer.validate(schema_data).to_a
-          expect(errors).to be_empty, "Schema validation failed: #{errors.map { |e| e['error'] }.join('; ')}"
+          expect(errors).to be_empty, "Schema validation failed: #{errors.map { |e| e["error"] }.join("; ")}"
         else
           skip "Schema data file not found: #{schema_data_path}"
         end

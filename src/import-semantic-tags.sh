@@ -33,7 +33,7 @@ $GCLOUD_CMD container images list-tags "$REGISTRY" \
       from_entries' > "$OUTPUT_DIR/semantic_versions.json"
 
 # Compute the mutable tags from canonical tags
-ruby src/compute.rb "$OUTPUT_DIR/semantic_versions.json" "$OUTPUT_DIR/expected_mutable_tags.json"
+bundle exec ruby src/compute.rb "$OUTPUT_DIR/semantic_versions.json" "$OUTPUT_DIR/expected_mutable_tags.json"
 
 # Convert to schema format
-ruby src/convert_to_schema.rb "$OUTPUT_DIR/expected_mutable_tags.json" "$OUTPUT_DIR/expected_mutable_tags_schema.json" "$REGISTRY"
+bundle exec ruby src/convert_to_schema.rb "$OUTPUT_DIR/expected_mutable_tags.json" "$OUTPUT_DIR/expected_mutable_tags_schema.json" "$REGISTRY"
