@@ -6,6 +6,9 @@ tmp/**
 !tmp/
 !tmp/.gitkeep
 
+# Claude Code local settings
+.claude/
+
 # Ruby dependencies
 vendor/
 .bundle/
