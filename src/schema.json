@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Tag Resolver Schema",
+  "description": "Schema for Resolve tag",
+  "type": "object",
+  "properties": {
+    "images": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "tag",
+          "digest"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the image"
+          },
+          "tag": {
+            "type": "string",
+            "description": "The mutable tag of the image"
+          },
+          "digest": {
+            "type": "string",
+            "description": "The full digest of the image"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
