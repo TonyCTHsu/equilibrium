@@ -8,6 +8,7 @@ if [ $# -eq 0 ]; then
 fi
 
 REGISTRY="$1"
+GCLOUD_CMD=${GCLOUD_CMD:-gcloud}
 
 # Create a safe directory name from registry path
 SAFE_NAME=${REGISTRY//[^a-zA-Z0-9]/_}
@@ -20,7 +21,7 @@ mkdir -p "$OUTPUT_DIR"
 echo "$REGISTRY" > "$OUTPUT_DIR/registry.txt"
 
 # Filter for only latest, major version tags (e.g., "1"), and minor version tags (e.g., "1.2")
-gcloud container images list-tags "$REGISTRY" \
+$GCLOUD_CMD container images list-tags "$REGISTRY" \
   --filter="tags:*" \
   --flatten="tags" \
   --format=json | \

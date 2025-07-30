@@ -1,6 +1,11 @@
 # Generated fixture data from registries
 fixtures/
 
+# Test temporary files (but keep the directory structure)
+tmp/**
+!tmp/
+!tmp/.gitkeep
+
 # Ruby dependencies
 vendor/
 .bundle/
