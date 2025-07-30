@@ -19,13 +19,17 @@ mkdir -p "$OUTPUT_DIR"
 # Store original registry name for test filtering
 echo "$REGISTRY" > "$OUTPUT_DIR/registry.txt"
 
-# Remove canonical tags and v-prefixed tags
+# Filter for only latest, major version tags (e.g., "1"), and minor version tags (e.g., "1.2")
 gcloud container images list-tags "$REGISTRY" \
   --filter="tags:*" \
   --flatten="tags" \
   --format=json | \
   jq 'map({(.tags): .digest}) | add' | \
-  jq 'with_entries(select(.key | (test("^v?[0-9]+\\.[0-9]+\\.[0-9]+$") | not) and (test("^v") | not))) |
+  jq 'with_entries(select(.key |
+      test("^latest$") or
+      test("^[0-9]+$") or
+      test("^[0-9]+\\.[0-9]+$")
+    )) |
       to_entries |
       sort_by(.key) |
       reverse |
