@@ -16,10 +16,10 @@ RSpec.describe "Equilibrium validation" do
     # Try to read original registry name from fixture metadata
     metadata_path = "#{fixture_dir}/registry.txt"
     original_registry = if File.exist?(metadata_path)
-                         File.read(metadata_path).strip
-                       else
-                         registry_name
-                       end
+      File.read(metadata_path).strip
+    else
+      registry_name
+    end
 
     describe "Registry: #{original_registry}" do
       let(:actual_mutable_tags_path) { "#{fixture_dir}/actual_mutable_tags.json" }

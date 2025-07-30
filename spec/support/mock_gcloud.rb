@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'json'
+require "json"
 
 # Mock gcloud script for testing
 module MockGcloud
@@ -31,7 +31,7 @@ module MockGcloud
     SCRIPT
 
     File.write(script_path, script_content)
-    File.chmod(0755, script_path)
+    File.chmod(0o755, script_path)
     script_path
   end
 

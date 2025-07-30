@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    name: Lint
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.1'
+        bundler-cache: true
+
+    - name: Run StandardRB
+      run: bundle exec standardrb
+
+    - name: Run shellcheck
+      run: shellcheck src/*.sh
+
+  test:
+    runs-on: ubuntu-latest
+    name: Test
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '3.1'
+        bundler-cache: true
+
+    - name: Run RSpec
+      run: bundle exec rspec
