@@ -56,15 +56,15 @@ RSpec.describe "import-semantic-tags.sh" do
       expect(File.read("#{output_dir}/registry.txt").strip).to eq(test_registry)
     end
 
-    it "creates semantic_versions.json file" do
+    it "creates canonical_tags.json file" do
       cmd.run("./src/import-semantic-tags.sh #{test_registry}")
-      expect(File.exist?("#{output_dir}/semantic_versions.json")).to be true
+      expect(File.exist?("#{output_dir}/canonical_tags.json")).to be true
     end
 
     it "filters semantic version tags correctly" do
       cmd.run("./src/import-semantic-tags.sh #{test_registry}")
 
-      semantic_data = JSON.parse(File.read("#{output_dir}/semantic_versions.json"))
+      semantic_data = JSON.parse(File.read("#{output_dir}/canonical_tags.json"))
 
       expect(semantic_data.keys).to match_array(["1.2.3", "1.2.2", "2.0.0", "2.0.1"])
       expect(semantic_data.keys).not_to include("latest")
@@ -73,7 +73,7 @@ RSpec.describe "import-semantic-tags.sh" do
     it "excludes v-prefixed tags" do
       cmd.run("./src/import-semantic-tags.sh #{test_registry}")
 
-      semantic_data = JSON.parse(File.read("#{output_dir}/semantic_versions.json"))
+      semantic_data = JSON.parse(File.read("#{output_dir}/canonical_tags.json"))
 
       # Should not include any v-prefixed versions (testing jq filter)
       v_prefixed_keys = semantic_data.keys.select { |k| k.start_with?("v") }
@@ -88,7 +88,7 @@ RSpec.describe "import-semantic-tags.sh" do
     it "excludes non-semantic version tags from raw data" do
       cmd.run("./src/import-semantic-tags.sh #{test_registry}")
 
-      semantic_data = JSON.parse(File.read("#{output_dir}/semantic_versions.json"))
+      semantic_data = JSON.parse(File.read("#{output_dir}/canonical_tags.json"))
 
       # Should not include latest, main, dev, sha256 tags
       expect(semantic_data.keys).not_to include("latest", "main", "dev")
@@ -102,7 +102,7 @@ RSpec.describe "import-semantic-tags.sh" do
     it "applies correct jq regex pattern for semantic versions" do
       cmd.run("./src/import-semantic-tags.sh #{test_registry}")
 
-      semantic_data = JSON.parse(File.read("#{output_dir}/semantic_versions.json"))
+      semantic_data = JSON.parse(File.read("#{output_dir}/canonical_tags.json"))
 
       # All keys should match the semantic version pattern: x.y.z
       semantic_data.keys.each do |key|
@@ -119,7 +119,7 @@ RSpec.describe "import-semantic-tags.sh" do
     it "includes correct digest mappings" do
       cmd.run("./src/import-semantic-tags.sh #{test_registry}")
 
-      semantic_data = JSON.parse(File.read("#{output_dir}/semantic_versions.json"))
+      semantic_data = JSON.parse(File.read("#{output_dir}/canonical_tags.json"))
       expect(semantic_data["2.0.1"]).to eq("sha256:jkl012")
       expect(semantic_data["2.0.0"]).to eq("sha256:ghi789")
       expect(semantic_data["1.2.3"]).to eq("sha256:abc123")
@@ -130,13 +130,13 @@ RSpec.describe "import-semantic-tags.sh" do
       cmd.run("./src/import-semantic-tags.sh #{test_registry}")
 
       # Should not raise JSON parse error
-      expect { JSON.parse(File.read("#{output_dir}/semantic_versions.json")) }.not_to raise_error
+      expect { JSON.parse(File.read("#{output_dir}/canonical_tags.json")) }.not_to raise_error
     end
 
     it "sorts tags in reverse order" do
       cmd.run("./src/import-semantic-tags.sh #{test_registry}")
 
-      semantic_data = JSON.parse(File.read("#{output_dir}/semantic_versions.json"))
+      semantic_data = JSON.parse(File.read("#{output_dir}/canonical_tags.json"))
       keys = semantic_data.keys
 
       # Should be sorted in reverse order
@@ -146,9 +146,9 @@ RSpec.describe "import-semantic-tags.sh" do
     it "generates expected mutable tags" do
       cmd.run("./src/import-semantic-tags.sh #{test_registry}")
 
-      expect(File.exist?("#{output_dir}/expected_mutable_tags.json")).to be true
+      expect(File.exist?("#{output_dir}/virtual_tags.json")).to be true
 
-      expected_data = JSON.parse(File.read("#{output_dir}/expected_mutable_tags.json"))
+      expected_data = JSON.parse(File.read("#{output_dir}/virtual_tags.json"))
       expect(expected_data).to have_key("latest")
       expect(expected_data).to have_key("2")
       expect(expected_data).to have_key("1")
@@ -157,7 +157,7 @@ RSpec.describe "import-semantic-tags.sh" do
     it "generates expected mutable tags with correct mappings" do
       cmd.run("./src/import-semantic-tags.sh #{test_registry}")
 
-      expected_data = JSON.parse(File.read("#{output_dir}/expected_mutable_tags.json"))
+      expected_data = JSON.parse(File.read("#{output_dir}/virtual_tags.json"))
 
       # Latest should point to highest version (2.0.1)
       expect(expected_data["latest"]).to eq("sha256:jkl012")

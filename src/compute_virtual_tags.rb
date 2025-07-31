@@ -38,14 +38,14 @@ end
 # Usage
 if __FILE__ == $0
   if ARGV.length < 1
-    puts "Usage: #{$0} <semantic_versions.json> [output_file]"
+    puts "Usage: #{$0} <canonical_tags.json> [output_file]"
     exit 1
   end
 
   json_file = ARGV[0]
   output_file = ARGV[1] || begin
     puts "Error: output_file required when not called from main workflow"
-    puts "Usage: #{$0} <semantic_versions.json> <output_file>"
+    puts "Usage: #{$0} <canonical_tags.json> <output_file>"
     exit 1
   end
 

@@ -24,10 +24,10 @@ RSpec.describe "Equilibrium validation" do
     end
 
     describe "Registry: #{original_registry}" do
-      let(:actual_mutable_tags_path) { "#{fixture_dir}/actual_mutable_tags.json" }
-      let(:expected_mutable_tags_path) { "#{fixture_dir}/expected_mutable_tags.json" }
-      let(:schema_data_path) { "#{fixture_dir}/expected_mutable_tags_schema.json" }
-      let(:schemer) { JSONSchemer.schema(File.read("src/schema.json")) }
+      let(:actual_mutable_tags_path) { "#{fixture_dir}/actual_tags.json" }
+      let(:expected_mutable_tags_path) { "#{fixture_dir}/virtual_tags.json" }
+      let(:schema_path) { "#{fixture_dir}/catalog.json" }
+      let(:schemer) { JSONSchemer.schema(File.read("src/catalog_schema.json")) }
 
       before do
         unless File.exist?(actual_mutable_tags_path) && File.exist?(expected_mutable_tags_path)
@@ -54,7 +54,7 @@ RSpec.describe "Equilibrium validation" do
       it "should have matching values for each key" do
         actual_data.each do |key, value|
           expect(expected_data[key]).to eq(value),
-            "Key '#{key}' has different values: actual_mutable_tags.json='#{value}' vs expected_mutable_tags.json='#{expected_data[key]}'"
+            "Key '#{key}' has different values: actual_tags.json='#{value}' vs virtual_tags.json='#{expected_data[key]}'"
         end
       end
 
@@ -88,12 +88,12 @@ RSpec.describe "Equilibrium validation" do
       end
 
       it "should validate against JSON schema" do
-        if File.exist?(schema_data_path)
-          schema_data = JSON.parse(File.read(schema_data_path))
+        if File.exist?(schema_path)
+          schema_data = JSON.parse(File.read(schema_path))
           errors = schemer.validate(schema_data).to_a
           expect(errors).to be_empty, "Schema validation failed: #{errors.map { |e| e["error"] }.join("; ")}"
         else
-          skip "Schema data file not found: #{schema_data_path}"
+          skip "Schema data file not found: #{schema_path}"
         end
       end
     end

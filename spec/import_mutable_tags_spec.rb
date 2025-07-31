@@ -56,15 +56,15 @@ RSpec.describe "import-mutable-tags.sh" do
       expect(File.read("#{output_dir}/registry.txt").strip).to eq(test_registry)
     end
 
-    it "creates actual_mutable_tags.json file" do
+    it "creates actual_tags.json file" do
       cmd.run("./src/import-mutable-tags.sh #{test_registry}")
-      expect(File.exist?("#{output_dir}/actual_mutable_tags.json")).to be true
+      expect(File.exist?("#{output_dir}/actual_tags.json")).to be true
     end
 
     it "filters mutable tags correctly" do
       cmd.run("./src/import-mutable-tags.sh #{test_registry}")
 
-      mutable_data = JSON.parse(File.read("#{output_dir}/actual_mutable_tags.json"))
+      mutable_data = JSON.parse(File.read("#{output_dir}/actual_tags.json"))
 
       # Should include latest, major versions, and minor versions
       expect(mutable_data.keys).to include("latest", "1", "1.2", "2", "2.0")
@@ -76,14 +76,14 @@ RSpec.describe "import-mutable-tags.sh" do
     it "includes latest tag" do
       cmd.run("./src/import-mutable-tags.sh #{test_registry}")
 
-      mutable_data = JSON.parse(File.read("#{output_dir}/actual_mutable_tags.json"))
+      mutable_data = JSON.parse(File.read("#{output_dir}/actual_tags.json"))
       expect(mutable_data).to have_key("latest")
     end
 
     it "includes major version tags" do
       cmd.run("./src/import-mutable-tags.sh #{test_registry}")
 
-      mutable_data = JSON.parse(File.read("#{output_dir}/actual_mutable_tags.json"))
+      mutable_data = JSON.parse(File.read("#{output_dir}/actual_tags.json"))
 
       # Should include major version tags (single digits)
       major_tags = mutable_data.keys.select { |k| /^\d+$/.match?(k) }
@@ -93,7 +93,7 @@ RSpec.describe "import-mutable-tags.sh" do
     it "includes minor version tags" do
       cmd.run("./src/import-mutable-tags.sh #{test_registry}")
 
-      mutable_data = JSON.parse(File.read("#{output_dir}/actual_mutable_tags.json"))
+      mutable_data = JSON.parse(File.read("#{output_dir}/actual_tags.json"))
 
       # Should include minor version tags (major.minor format)
       minor_tags = mutable_data.keys.select { |k| /^\d+\.\d+$/.match?(k) }
@@ -103,7 +103,7 @@ RSpec.describe "import-mutable-tags.sh" do
     it "excludes semantic version tags" do
       cmd.run("./src/import-mutable-tags.sh #{test_registry}")
 
-      mutable_data = JSON.parse(File.read("#{output_dir}/actual_mutable_tags.json"))
+      mutable_data = JSON.parse(File.read("#{output_dir}/actual_tags.json"))
 
       # Should not include full semantic versions
       semantic_tags = mutable_data.keys.select { |k| /^\d+\.\d+\.\d+$/.match?(k) }
@@ -113,7 +113,7 @@ RSpec.describe "import-mutable-tags.sh" do
     it "excludes v-prefixed tags" do
       cmd.run("./src/import-mutable-tags.sh #{test_registry}")
 
-      mutable_data = JSON.parse(File.read("#{output_dir}/actual_mutable_tags.json"))
+      mutable_data = JSON.parse(File.read("#{output_dir}/actual_tags.json"))
 
       # Should not include v-prefixed tags (testing jq filter)
       v_prefixed_tags = mutable_data.keys.select { |k| k.start_with?("v") }
@@ -128,7 +128,7 @@ RSpec.describe "import-mutable-tags.sh" do
     it "excludes non-mutable tags from raw data" do
       cmd.run("./src/import-mutable-tags.sh #{test_registry}")
 
-      mutable_data = JSON.parse(File.read("#{output_dir}/actual_mutable_tags.json"))
+      mutable_data = JSON.parse(File.read("#{output_dir}/actual_tags.json"))
 
       # Should not include branch names or sha256 digest tags
       expect(mutable_data.keys).not_to include("main", "dev")
@@ -145,7 +145,7 @@ RSpec.describe "import-mutable-tags.sh" do
     it "applies correct jq regex patterns for mutable tags" do
       cmd.run("./src/import-mutable-tags.sh #{test_registry}")
 
-      mutable_data = JSON.parse(File.read("#{output_dir}/actual_mutable_tags.json"))
+      mutable_data = JSON.parse(File.read("#{output_dir}/actual_tags.json"))
 
       # All keys should match mutable tag patterns: latest, major, or minor versions
       mutable_data.keys.each do |key|
@@ -163,7 +163,7 @@ RSpec.describe "import-mutable-tags.sh" do
     it "sorts tags in reverse order" do
       cmd.run("./src/import-mutable-tags.sh #{test_registry}")
 
-      mutable_data = JSON.parse(File.read("#{output_dir}/actual_mutable_tags.json"))
+      mutable_data = JSON.parse(File.read("#{output_dir}/actual_tags.json"))
       keys = mutable_data.keys
 
       # Should be sorted in reverse order
@@ -173,7 +173,7 @@ RSpec.describe "import-mutable-tags.sh" do
     it "includes correct digest mappings" do
       cmd.run("./src/import-mutable-tags.sh #{test_registry}")
 
-      mutable_data = JSON.parse(File.read("#{output_dir}/actual_mutable_tags.json"))
+      mutable_data = JSON.parse(File.read("#{output_dir}/actual_tags.json"))
       expect(mutable_data["latest"]).to eq("sha256:jkl012")
       expect(mutable_data["2"]).to eq("sha256:jkl012")
       expect(mutable_data["1"]).to eq("sha256:abc123")
@@ -185,7 +185,7 @@ RSpec.describe "import-mutable-tags.sh" do
       cmd.run("./src/import-mutable-tags.sh #{test_registry}")
 
       # Should not raise JSON parse error
-      expect { JSON.parse(File.read("#{output_dir}/actual_mutable_tags.json")) }.not_to raise_error
+      expect { JSON.parse(File.read("#{output_dir}/actual_tags.json")) }.not_to raise_error
     end
 
     it "handles registry name sanitization" do
@@ -205,10 +205,10 @@ RSpec.describe "import-mutable-tags.sh" do
     it "produces consistent results across multiple runs" do
       # Run twice and compare results
       cmd.run("./src/import-mutable-tags.sh #{test_registry}")
-      first_result = JSON.parse(File.read("#{output_dir}/actual_mutable_tags.json"))
+      first_result = JSON.parse(File.read("#{output_dir}/actual_tags.json"))
 
       cmd.run("./src/import-mutable-tags.sh #{test_registry}")
-      second_result = JSON.parse(File.read("#{output_dir}/actual_mutable_tags.json"))
+      second_result = JSON.parse(File.read("#{output_dir}/actual_tags.json"))
 
       expect(first_result).to eq(second_result)
     end

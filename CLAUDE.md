@@ -32,25 +32,25 @@ gcloud auth login
 
 - **`src/*`** - functional scripts ands
   - **`src/main.sh`** - Main orchestration script
-  - **`src/schema.json`** - JSON schema for validating tag resolver data structure
+  - **`src/catalog_schema.json`** - JSON schema for validating tag resolver data structure
 - **`spec/*`** - RSpec test suite
 
 ### Data Flow
 
 ```
-Registry → Semantic Filter → compute.rb → convert_to_schema.rb
+Registry → Semantic Filter → compute_virtual_tags.rb → build_catalog.rb
    ↓            ↓               ↓             ↓
-All Tags → semantic_versions → expected_mutable → expected_mutable_schema
+All Tags → semantic_versions → expected_mutable → expected_mutable_catalog
    ↓                                              ↓
 Mutable Fetch → actual_mutable → RSpec Tests → Equilibrium Validation
 ```
 
 **Pipeline Steps:**
 1. **Fetch all tags** from registry via `gcloud container images list-tags`
-2. **Filter semantic versions** (MAJOR.MINOR.PATCH format) → `semantic_versions.json`
-3. **Compute expected mappings** via `compute.rb` → `expected_mutable_tags.json`
-4. **Convert to schema format** via `convert_to_schema.rb` → `expected_mutable_tags_schema.json`
-5. **Fetch actual mutable tags** from registry → `actual_mutable_tags.json`
+2. **Filter semantic versions** (MAJOR.MINOR.PATCH format) → `canonical_tags.json`
+3. **Compute expected mappings** via `compute_virtual_tags.rb` → `virtual_tags.json`
+4. **Convert to schema format** via `build_catalog.rb` → `catalog.json`
+5. **Fetch actual mutable tags** from registry → `actual_tags.json`
 6. **Validate equilibrium** via RSpec test suite comparing expected vs actual
 
 ### Tag conversion logic
@@ -70,7 +70,7 @@ This conversion MUST be idempotent.
 
 ## Catalog and Schema Validation
 
-After the expected mutable tags are computed and generated, it would be output to a catalog defined by a JSON schema(`src/schema.json`).
+After the expected mutable tags are computed and generated, it would be output to a catalog defined by a JSON schema(`src/catalog_schema.json`).
 
 ### Output Structure
 
@@ -79,10 +79,10 @@ The data are output to `fixtures` and will later be vailated by the test suite. 
 ```
 fixtures/
 └── {registry_name}/
-    ├── semantic_versions.json           # Semantic versions from registry
-    ├── actual_mutable_tags.json         # Actual mutable tags from registry
-    ├── expected_mutable_tags.json       # Expected mutable tag mappings
-    ├── expected_mutable_tags_schema.json # Schema-validated expected tags
+    ├── canonical_tags.json              # Semantic versions from registry
+    ├── actual_tags.json                 # Actual mutable tags from registry
+    ├── virtual_tags.json                # Expected mutable tag mappings
+    ├── catalog.json # Schema-validated expected tags
     └── registry.txt                     # Original registry name (for reference)
 ```
 
@@ -124,7 +124,7 @@ REGISTRY="gcr.io/datadoghq/apm-inject"
 ./src/import-mutable-tags.sh $REGISTRY
 
 # Compute mappings from existing semantic data
-ruby src/compute.rb fixtures/gcr_io_datadoghq_apm_inject/semantic_versions.json
+ruby src/compute_virtual_tags.rb fixtures/gcr_io_datadoghq_apm_inject/canonical_tags.json
 ```
 
 ## Development

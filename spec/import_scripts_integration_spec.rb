@@ -46,9 +46,9 @@ RSpec.describe "Import scripts integration" do
 
       # Verify all expected files exist
       expect(File.exist?("#{output_dir}/registry.txt")).to be true
-      expect(File.exist?("#{output_dir}/semantic_versions.json")).to be true
-      expect(File.exist?("#{output_dir}/actual_mutable_tags.json")).to be true
-      expect(File.exist?("#{output_dir}/expected_mutable_tags.json")).to be true
+      expect(File.exist?("#{output_dir}/canonical_tags.json")).to be true
+      expect(File.exist?("#{output_dir}/actual_tags.json")).to be true
+      expect(File.exist?("#{output_dir}/virtual_tags.json")).to be true
     end
 
     it "generates valid JSON in all output files" do
@@ -62,9 +62,9 @@ RSpec.describe "Import scripts integration" do
       end
 
       # All JSON files should be valid
-      expect { JSON.parse(File.read("#{output_dir}/semantic_versions.json")) }.not_to raise_error
-      expect { JSON.parse(File.read("#{output_dir}/actual_mutable_tags.json")) }.not_to raise_error
-      expect { JSON.parse(File.read("#{output_dir}/expected_mutable_tags.json")) }.not_to raise_error
+      expect { JSON.parse(File.read("#{output_dir}/canonical_tags.json")) }.not_to raise_error
+      expect { JSON.parse(File.read("#{output_dir}/actual_tags.json")) }.not_to raise_error
+      expect { JSON.parse(File.read("#{output_dir}/virtual_tags.json")) }.not_to raise_error
     end
 
     it "produces files compatible with equilibrium spec" do
@@ -78,8 +78,8 @@ RSpec.describe "Import scripts integration" do
       end
 
       # Load the generated data
-      actual_data = JSON.parse(File.read("#{output_dir}/actual_mutable_tags.json"))
-      expected_data = JSON.parse(File.read("#{output_dir}/expected_mutable_tags.json"))
+      actual_data = JSON.parse(File.read("#{output_dir}/actual_tags.json"))
+      expected_data = JSON.parse(File.read("#{output_dir}/virtual_tags.json"))
 
       # Should have expected keys
       expect(actual_data).to have_key("latest")
@@ -115,8 +115,8 @@ RSpec.describe "Import scripts integration" do
       end
 
       # Load data
-      actual_data = JSON.parse(File.read("#{output_dir}/actual_mutable_tags.json"))
-      expected_data = JSON.parse(File.read("#{output_dir}/expected_mutable_tags.json"))
+      actual_data = JSON.parse(File.read("#{output_dir}/actual_tags.json"))
+      expected_data = JSON.parse(File.read("#{output_dir}/virtual_tags.json"))
 
       # Key structure should match
       expect(actual_data.keys.sort).to eq(expected_data.keys.sort)
@@ -135,14 +135,14 @@ RSpec.describe "Import scripts integration" do
         cmd.run("./src/import-mutable-tags.sh #{test_registry}")
       end
       expect(result1.success?).to be true
-      expect(File.exist?("#{output_dir}/actual_mutable_tags.json")).to be true
+      expect(File.exist?("#{output_dir}/actual_tags.json")).to be true
 
       # Semantic tags script should work and generate expected tags
       result2 = ClimateControl.modify(GCLOUD_CMD: semantic_mock_script) do
         cmd.run("./src/import-semantic-tags.sh #{test_registry}")
       end
       expect(result2.success?).to be true
-      expect(File.exist?("#{output_dir}/expected_mutable_tags.json")).to be true
+      expect(File.exist?("#{output_dir}/virtual_tags.json")).to be true
     end
 
     it "produces files with correct data relationships" do
@@ -156,9 +156,9 @@ RSpec.describe "Import scripts integration" do
       end
 
       # Load all data
-      semantic_data = JSON.parse(File.read("#{output_dir}/semantic_versions.json"))
-      actual_data = JSON.parse(File.read("#{output_dir}/actual_mutable_tags.json"))
-      expected_data = JSON.parse(File.read("#{output_dir}/expected_mutable_tags.json"))
+      semantic_data = JSON.parse(File.read("#{output_dir}/canonical_tags.json"))
+      actual_data = JSON.parse(File.read("#{output_dir}/actual_tags.json"))
+      expected_data = JSON.parse(File.read("#{output_dir}/virtual_tags.json"))
 
       # Expected mutable tags should be derived from semantic versions
       expect(semantic_data).to have_key("2.0.1")

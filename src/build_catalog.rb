@@ -33,7 +33,7 @@ end
 output = {"images" => images}
 
 # Validate against schema before writing
-schema_file = File.join(File.dirname(__FILE__), "schema.json")
+schema_file = File.join(File.dirname(__FILE__), "catalog_schema.json")
 schemer = JSONSchemer.schema(File.read(schema_file))
 
 errors = schemer.validate(output).to_a

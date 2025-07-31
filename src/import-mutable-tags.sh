@@ -34,4 +34,4 @@ $GCLOUD_CMD container images list-tags "$REGISTRY" \
       to_entries |
       sort_by(.key) |
       reverse |
-      from_entries' > "$OUTPUT_DIR/actual_mutable_tags.json"
+      from_entries' > "$OUTPUT_DIR/actual_tags.json"
