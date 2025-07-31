@@ -33,11 +33,6 @@ RSpec.describe "Equilibrium validation" do
         unless File.exist?(actual_mutable_tags_path) && File.exist?(expected_mutable_tags_path)
           skip "Missing fixture files for #{registry_name}. Expected:\n  #{actual_mutable_tags_path}\n  #{expected_mutable_tags_path}"
         end
-
-        # Temporarily skip JS dataset
-        if registry_name == "gcr_io_datadoghq_dd_lib_js_init"
-          skip "Temporarily skipping JS dataset"
-        end
       end
 
       let(:actual_data) { JSON.parse(File.read(actual_mutable_tags_path)) }
