@@ -23,11 +23,8 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
+          ruby-version: .ruby-version
           bundler-cache: true
-          ruby-version: ruby
-
-      - name: Build gem
-        run: gem build equilibrium.gemspec
 
       - name: Publish to RubyGems
         uses: rubygems/release-gem@v1
