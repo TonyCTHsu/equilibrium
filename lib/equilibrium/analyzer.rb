@@ -9,9 +9,9 @@ module Equilibrium
 
     # Analyzes validated expected/actual data in schema format
     def analyze(expected_data, actual_data)
-      # Extract tags from validated schema format
-      expected_tags = expected_data["tags"]
-      actual_tags = actual_data["tags"]
+      # Extract digests from validated schema format
+      expected_tags = expected_data["digests"]
+      actual_tags = actual_data["digests"]
 
       # Extract and validate repository URLs match
       expected_url = expected_data["repository_url"]

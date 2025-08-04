@@ -11,18 +11,25 @@ RSpec.describe Equilibrium::CatalogBuilder do
     {
       "repository_url" => "gcr.io/test-project/test-image",
       "repository_name" => "test-image",
-      "tags" => {
+      "digests" => {
         "latest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
         "1" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
         "1.2" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
         "1.1" => "sha256:def456789012345678901234567890123456789012345678901234567890abcd",
         "0" => "sha256:012345678901234567890123456789012345678901234567890123456789abcd"
+      },
+      "canonical_versions" => {
+        "latest" => "1.2.3",
+        "1" => "1.2.3",
+        "1.2" => "1.2.3",
+        "1.1" => "1.1.0",
+        "0" => "0.9.0"
       }
     }
   end
 
   # Legacy format for backward compatibility tests
-  let(:sample_virtual_tags) { sample_data["tags"] }
+  let(:sample_virtual_tags) { sample_data["digests"] }
 
   describe "#build_catalog" do
     it "builds catalog with correct structure" do
@@ -92,12 +99,14 @@ RSpec.describe Equilibrium::CatalogBuilder do
           {
             "name" => "test-image",
             "tag" => "latest",
-            "digest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd"
+            "digest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
+            "canonical_version" => "1.2.3"
           },
           {
             "name" => "test-image",
             "tag" => "1",
-            "digest" => "sha256:def456789012345678901234567890123456789012345678901234567890abcd"
+            "digest" => "sha256:def456789012345678901234567890123456789012345678901234567890abcd",
+            "canonical_version" => "1.2.3"
           }
         ]
       }
@@ -176,11 +185,17 @@ RSpec.describe Equilibrium::CatalogBuilder do
       realistic_data = {
         "repository_url" => "gcr.io/datadoghq/apm-inject",
         "repository_name" => "apm-inject",
-        "tags" => {
+        "digests" => {
           "latest" => "sha256:5fcfe7ac14f6eeb0fe086ac7021d013d764af573b8c2d98113abf26b4d09b58c",
           "0" => "sha256:5fcfe7ac14f6eeb0fe086ac7021d013d764af573b8c2d98113abf26b4d09b58c",
           "0.43" => "sha256:5fcfe7ac14f6eeb0fe086ac7021d013d764af573b8c2d98113abf26b4d09b58c",
           "0.42" => "sha256:c7a822d271eb72e6c3bee2aaf579c8a3732eda9710d27effdca6beb3f5f63b0e"
+        },
+        "canonical_versions" => {
+          "latest" => "0.43.2",
+          "0" => "0.43.2",
+          "0.43" => "0.43.1",
+          "0.42" => "0.42.3"
         }
       }
 

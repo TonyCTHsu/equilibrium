@@ -11,17 +11,20 @@ module Equilibrium
     #     {
     #       "name": "apm-inject",
     #       "tag": "latest",
-    #       "digest": "sha256:5fcfe7ac14f6eeb0fe086ac7021d013d764af573b8c2d98113abf26b4d09b58c"
+    #       "digest": "sha256:5fcfe7ac14f6eeb0fe086ac7021d013d764af573b8c2d98113abf26b4d09b58c",
+    #       "canonical_version": "0.43.2"
     #     },
     #     {
     #       "name": "apm-inject",
     #       "tag": "0",
-    #       "digest": "sha256:5fcfe7ac14f6eeb0fe086ac7021d013d764af573b8c2d98113abf26b4d09b58c"
+    #       "digest": "sha256:5fcfe7ac14f6eeb0fe086ac7021d013d764af573b8c2d98113abf26b4d09b58c",
+    #       "canonical_version": "0.43.2"
     #     },
     #     {
     #       "name": "apm-inject",
     #       "tag": "0.43",
-    #       "digest": "sha256:5fcfe7ac14f6eeb0fe086ac7021d013d764af573b8c2d98113abf26b4d09b58c"
+    #       "digest": "sha256:5fcfe7ac14f6eeb0fe086ac7021d013d764af573b8c2d98113abf26b4d09b58c",
+    #       "canonical_version": "0.43.1"
     #     }
     #   ]
     # }
@@ -38,7 +41,8 @@ module Equilibrium
             "required" => [
               "name",
               "tag",
-              "digest"
+              "digest",
+              "canonical_version"
             ],
             "properties" => {
               "name" => {
@@ -53,6 +57,11 @@ module Equilibrium
                 "type" => "string",
                 "description" => "The full digest of the image",
                 "pattern" => "^sha256:[a-f0-9]{64}$"
+              },
+              "canonical_version" => {
+                "type" => "string",
+                "description" => "The canonical semantic version for this mutable tag",
+                "pattern" => "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
               }
             },
             "additionalProperties" => false

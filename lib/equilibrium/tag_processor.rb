@@ -9,7 +9,7 @@ module Equilibrium
     end
 
     def compute_virtual_tags(semantic_tags)
-      return {} if semantic_tags.empty?
+      return {"digests" => {}, "canonical_versions" => {}} if semantic_tags.empty?
 
       latest_version = nil
       major_versions = {}
@@ -31,14 +31,28 @@ module Equilibrium
         minor_versions[major_minor] = version if !minor_versions[major_minor] || version > minor_versions[major_minor]
       end
 
-      # Build result
-      result = {}
-      result["latest"] = semantic_tags[latest_version.to_s] if latest_version
+      # Build result with both digest and canonical mappings
+      digests = {}
+      canonical_versions = {}
 
-      major_versions.each { |_, v| result[v.segments[0].to_s] = semantic_tags[v.to_s] }
-      minor_versions.each { |_, v| result["#{v.segments[0]}.#{v.segments[1]}"] = semantic_tags[v.to_s] }
+      if latest_version
+        digests["latest"] = semantic_tags[latest_version.to_s]
+        canonical_versions["latest"] = latest_version.to_s
+      end
 
-      result
+      major_versions.each do |_, v|
+        tag = v.segments[0].to_s
+        digests[tag] = semantic_tags[v.to_s]
+        canonical_versions[tag] = v.to_s
+      end
+
+      minor_versions.each do |_, v|
+        tag = "#{v.segments[0]}.#{v.segments[1]}"
+        digests[tag] = semantic_tags[v.to_s]
+        canonical_versions[tag] = v.to_s
+      end
+
+      {"digests" => digests, "canonical_versions" => canonical_versions}
     end
 
     def filter_semantic_tags(all_tags)

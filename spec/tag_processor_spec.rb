@@ -144,24 +144,32 @@ RSpec.describe Equilibrium::TagProcessor do
 
     it "computes latest tag correctly" do
       result = processor.compute_virtual_tags(semantic_tags)
-      expect(result["latest"]).to eq(v123_digest) # 1.2.3
+      expect(result["digests"]["latest"]).to eq(v123_digest) # 1.2.3
+      expect(result["canonical_versions"]["latest"]).to eq("1.2.3")
     end
 
     it "computes major version tags correctly" do
       result = processor.compute_virtual_tags(semantic_tags)
 
-      expect(result["1"]).to eq(v123_digest) # Latest 1.x.x (1.2.3)
-      expect(result["0"]).to eq(v090_digest) # Latest 0.x.x (0.9.0)
+      expect(result["digests"]["1"]).to eq(v123_digest) # Latest 1.x.x (1.2.3)
+      expect(result["digests"]["0"]).to eq(v090_digest) # Latest 0.x.x (0.9.0)
+      expect(result["canonical_versions"]["1"]).to eq("1.2.3")
+      expect(result["canonical_versions"]["0"]).to eq("0.9.0")
     end
 
     it "computes minor version tags correctly" do
       result = processor.compute_virtual_tags(semantic_tags)
 
-      expect(result["1.2"]).to eq(v123_digest) # Latest 1.2.x (1.2.3)
-      expect(result["1.1"]).to eq(v110_digest) # Latest 1.1.x (1.1.0)
-      expect(result["1.0"]).to eq(v100_digest) # Latest 1.0.x (1.0.0)
-      expect(result["0.9"]).to eq(v090_digest) # Latest 0.9.x (0.9.0)
-      expect(result["0.8"]).to eq(v081_digest) # Latest 0.8.x (0.8.1)
+      expect(result["digests"]["1.2"]).to eq(v123_digest) # Latest 1.2.x (1.2.3)
+      expect(result["digests"]["1.1"]).to eq(v110_digest) # Latest 1.1.x (1.1.0)
+      expect(result["digests"]["1.0"]).to eq(v100_digest) # Latest 1.0.x (1.0.0)
+      expect(result["digests"]["0.9"]).to eq(v090_digest) # Latest 0.9.x (0.9.0)
+      expect(result["digests"]["0.8"]).to eq(v081_digest) # Latest 0.8.x (0.8.1)
+      expect(result["canonical_versions"]["1.2"]).to eq("1.2.3")
+      expect(result["canonical_versions"]["1.1"]).to eq("1.1.0")
+      expect(result["canonical_versions"]["1.0"]).to eq("1.0.0")
+      expect(result["canonical_versions"]["0.9"]).to eq("0.9.0")
+      expect(result["canonical_versions"]["0.8"]).to eq("0.8.1")
     end
 
     it "handles single version correctly" do
@@ -169,9 +177,12 @@ RSpec.describe Equilibrium::TagProcessor do
       single_version = {"2.0.0" => single_digest}
       result = processor.compute_virtual_tags(single_version)
 
-      expect(result["latest"]).to eq(single_digest)
-      expect(result["2"]).to eq(single_digest)
-      expect(result["2.0"]).to eq(single_digest)
+      expect(result["digests"]["latest"]).to eq(single_digest)
+      expect(result["digests"]["2"]).to eq(single_digest)
+      expect(result["digests"]["2.0"]).to eq(single_digest)
+      expect(result["canonical_versions"]["latest"]).to eq("2.0.0")
+      expect(result["canonical_versions"]["2"]).to eq("2.0.0")
+      expect(result["canonical_versions"]["2.0"]).to eq("2.0.0")
     end
 
     it "handles versions with different patch levels" do
@@ -183,9 +194,12 @@ RSpec.describe Equilibrium::TagProcessor do
       result = processor.compute_virtual_tags(patch_versions)
 
       patch5_digest = "sha256:#{Digest::SHA256.hexdigest("1.0.5")}"
-      expect(result["1.0"]).to eq(patch5_digest) # Latest 1.0.x
-      expect(result["1"]).to eq(patch5_digest)   # Latest 1.x.x
-      expect(result["latest"]).to eq(patch5_digest)
+      expect(result["digests"]["1.0"]).to eq(patch5_digest) # Latest 1.0.x
+      expect(result["digests"]["1"]).to eq(patch5_digest)   # Latest 1.x.x
+      expect(result["digests"]["latest"]).to eq(patch5_digest)
+      expect(result["canonical_versions"]["1.0"]).to eq("1.0.5")
+      expect(result["canonical_versions"]["1"]).to eq("1.0.5")
+      expect(result["canonical_versions"]["latest"]).to eq("1.0.5")
     end
 
     it "is idempotent" do
@@ -197,7 +211,8 @@ RSpec.describe Equilibrium::TagProcessor do
 
     it "handles empty input" do
       result = processor.compute_virtual_tags({})
-      expect(result).to be_empty
+      expect(result["digests"]).to be_empty
+      expect(result["canonical_versions"]).to be_empty
     end
 
     it "sorts versions correctly" do
@@ -216,9 +231,12 @@ RSpec.describe Equilibrium::TagProcessor do
       result = processor.compute_virtual_tags(unsorted_versions)
 
       # Latest should be the highest version
-      expect(result["latest"]).to eq(newest_digest) # 1.2.3
-      expect(result["1"]).to eq(newest_digest)      # 1.2.3
-      expect(result["0"]).to eq(minor_digest)       # 0.9.0
+      expect(result["digests"]["latest"]).to eq(newest_digest) # 1.2.3
+      expect(result["digests"]["1"]).to eq(newest_digest)      # 1.2.3
+      expect(result["digests"]["0"]).to eq(minor_digest)       # 0.9.0
+      expect(result["canonical_versions"]["latest"]).to eq("1.2.3")
+      expect(result["canonical_versions"]["1"]).to eq("1.2.3")
+      expect(result["canonical_versions"]["0"]).to eq("0.9.0")
     end
 
     it "handles zero major versions" do
@@ -234,10 +252,14 @@ RSpec.describe Equilibrium::TagProcessor do
 
       result = processor.compute_virtual_tags(zero_major)
 
-      expect(result["latest"]).to eq(zero2_digest) # 0.2.0
-      expect(result["0"]).to eq(zero2_digest)      # 0.2.0
-      expect(result["0.2"]).to eq(zero2_digest)    # 0.2.0
-      expect(result["0.1"]).to eq(zero15_digest)   # 0.1.5
+      expect(result["digests"]["latest"]).to eq(zero2_digest) # 0.2.0
+      expect(result["digests"]["0"]).to eq(zero2_digest)      # 0.2.0
+      expect(result["digests"]["0.2"]).to eq(zero2_digest)    # 0.2.0
+      expect(result["canonical_versions"]["latest"]).to eq("0.2.0")
+      expect(result["canonical_versions"]["0"]).to eq("0.2.0")
+      expect(result["canonical_versions"]["0.2"]).to eq("0.2.0")
+      expect(result["digests"]["0.1"]).to eq(zero15_digest)   # 0.1.5
+      expect(result["canonical_versions"]["0.1"]).to eq("0.1.5")
     end
   end
 
@@ -249,9 +271,12 @@ RSpec.describe Equilibrium::TagProcessor do
       mutable_tags = processor.filter_mutable_tags(sample_tags)
 
       # Virtual tags should be computed from semantic versions
-      expect(virtual_tags["latest"]).to eq(v123_digest) # 1.2.3
-      expect(virtual_tags["1"]).to eq(v123_digest)      # 1.2.3
-      expect(virtual_tags["1.2"]).to eq(v123_digest)    # 1.2.3
+      expect(virtual_tags["digests"]["latest"]).to eq(v123_digest) # 1.2.3
+      expect(virtual_tags["digests"]["1"]).to eq(v123_digest)      # 1.2.3
+      expect(virtual_tags["digests"]["1.2"]).to eq(v123_digest)    # 1.2.3
+      expect(virtual_tags["canonical_versions"]["latest"]).to eq("1.2.3")
+      expect(virtual_tags["canonical_versions"]["1"]).to eq("1.2.3")
+      expect(virtual_tags["canonical_versions"]["1.2"]).to eq("1.2.3")
 
       # Mutable tags should include existing mutable tags
       expect(mutable_tags["1"]).to eq(existing1_digest)

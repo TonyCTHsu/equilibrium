@@ -32,13 +32,15 @@ RSpec.describe "Integration Tests" do
       expected_data = JSON.parse(expected_output)
       expect(expected_data).to have_key("repository_url")
       expect(expected_data).to have_key("repository_name")
-      expect(expected_data).to have_key("tags")
+      expect(expected_data).to have_key("digests")
+      expect(expected_data).to have_key("canonical_versions")
 
       # Step 2: Generate actual tags
       actual_output = capture_stdout { cli.actual(test_repository_url) }
       actual_data = JSON.parse(actual_output)
       expect(actual_data).to have_key("repository_url")
-      expect(actual_data).to have_key("tags")
+      expect(actual_data).to have_key("digests")
+      expect(actual_data).to have_key("canonical_versions")
 
       # Step 3: Convert expected to catalog format
       allow($stdin).to receive(:read).and_return(expected_output)
@@ -165,7 +167,7 @@ RSpec.describe "Integration Tests" do
       expect(repo_name.strip).to eq("test-image")
 
       # Count tags using jq
-      tag_count, status = Open3.capture2("jq '.tags | length'", stdin_data: expected_output)
+      tag_count, status = Open3.capture2("jq '.digests | length'", stdin_data: expected_output)
       expect(status.success?).to be true
       expect(tag_count.strip.to_i).to be > 0
     end

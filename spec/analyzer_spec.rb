@@ -21,10 +21,15 @@ RSpec.describe Equilibrium::Analyzer do
     {
       "repository_url" => repository_url,
       "repository_name" => "test-image",
-      "tags" => {
+      "digests" => {
         "latest" => perfect_digest,
         "1" => perfect_digest,
         "1.2" => perfect_digest
+      },
+      "canonical_versions" => {
+        "latest" => "1.2.3",
+        "1" => "1.2.3",
+        "1.2" => "1.2.3"
       }
     }
   end
@@ -33,10 +38,15 @@ RSpec.describe Equilibrium::Analyzer do
     {
       "repository_url" => repository_url,
       "repository_name" => "test-image",
-      "tags" => {
+      "digests" => {
         "latest" => perfect_digest,
         "1" => perfect_digest,
         "1.2" => perfect_digest
+      },
+      "canonical_versions" => {
+        "latest" => "1.2.3",
+        "1" => "1.2.3",
+        "1.2" => "1.2.3"
       }
     }
   end
@@ -59,9 +69,12 @@ RSpec.describe Equilibrium::Analyzer do
       actual_missing = {
         "repository_url" => repository_url,
         "repository_name" => "test-image",
-        "tags" => {
+        "digests" => {
           "latest" => perfect_digest
           # Missing "1" and "1.2"
+        },
+        "canonical_versions" => {
+          "latest" => "1.2.3"
         }
       }
 
@@ -78,11 +91,17 @@ RSpec.describe Equilibrium::Analyzer do
       actual_extra = {
         "repository_url" => repository_url,
         "repository_name" => "test-image",
-        "tags" => {
+        "digests" => {
           "latest" => perfect_digest,
           "1" => perfect_digest,
           "1.2" => perfect_digest,
           "dev" => extra_digest  # Unexpected tag
+        },
+        "canonical_versions" => {
+          "latest" => "1.2.3",
+          "1" => "1.2.3",
+          "1.2" => "1.2.3",
+          "dev" => "0.1.0"
         }
       }
 
@@ -99,10 +118,15 @@ RSpec.describe Equilibrium::Analyzer do
       actual_mismatched = {
         "repository_url" => repository_url,
         "repository_name" => "test-image",
-        "tags" => {
+        "digests" => {
           "latest" => perfect_digest,
           "1" => different_digest,  # Wrong digest
           "1.2" => perfect_digest
+        },
+        "canonical_versions" => {
+          "latest" => "1.2.3",
+          "1" => "1.2.3",
+          "1.2" => "1.2.3"
         }
       }
 
@@ -120,11 +144,16 @@ RSpec.describe Equilibrium::Analyzer do
       actual_complex = {
         "repository_url" => repository_url,
         "repository_name" => "test-image",
-        "tags" => {
+        "digests" => {
           "latest" => perfect_digest,      # Correct
           "1" => wrong_digest,         # Mismatched
           # Missing "1.2"
           "dev" => extra_digest       # Unexpected
+        },
+        "canonical_versions" => {
+          "latest" => "1.2.3",
+          "1" => "1.2.3",
+          "dev" => "0.1.0"
         }
       }
 

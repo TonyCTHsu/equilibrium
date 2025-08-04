@@ -21,11 +21,13 @@ RSpec.describe Equilibrium::CLI do
 
       expect(data).to have_key("repository_url")
       expect(data).to have_key("repository_name")
-      expect(data).to have_key("tags")
+      expect(data).to have_key("digests")
+      expect(data).to have_key("canonical_versions")
 
       expect(data["repository_url"]).to eq(test_repository_url)
       expect(data["repository_name"]).to eq("test-image")
-      expect(data["tags"]).to be_a(Hash)
+      expect(data["digests"]).to be_a(Hash)
+      expect(data["canonical_versions"]).to be_a(Hash)
     end
 
     it "validates output against expected/actual schema" do
@@ -41,7 +43,7 @@ RSpec.describe Equilibrium::CLI do
     it "computes correct virtual tags" do
       output = capture_stdout { cli.expected(test_repository_url) }
       data = JSON.parse(output)
-      tags = data["tags"]
+      tags = data["digests"]
 
       # Should have latest pointing to highest version (1.2.3)
       expect(tags["latest"]).to eq("sha256:abc123def456789012345678901234567890123456789012345678901234abcd")
@@ -83,7 +85,8 @@ RSpec.describe Equilibrium::CLI do
 
       expect(data).to have_key("repository_url")
       expect(data).to have_key("repository_name")
-      expect(data).to have_key("tags")
+      expect(data).to have_key("digests")
+      expect(data).to have_key("canonical_versions")
 
       expect(data["repository_url"]).to eq(test_repository_url)
       expect(data["repository_name"]).to eq("test-image")
@@ -102,7 +105,7 @@ RSpec.describe Equilibrium::CLI do
     it "filters out non-mutable tags" do
       output = capture_stdout { cli.actual(test_repository_url) }
       data = JSON.parse(output)
-      tags = data["tags"]
+      tags = data["digests"]
 
       # Should include mutable tags
       expect(tags.keys).to include("latest")
@@ -122,10 +125,15 @@ RSpec.describe Equilibrium::CLI do
       {
         "repository_url" => test_repository_url,
         "repository_name" => "test-image",
-        "tags" => {
+        "digests" => {
           "latest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
           "1" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
           "1.2" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd"
+        },
+        "canonical_versions" => {
+          "latest" => "1.2.3",
+          "1" => "1.2.3",
+          "1.2" => "1.2.3"
         }
       }
     end
@@ -177,10 +185,15 @@ RSpec.describe Equilibrium::CLI do
       {
         "repository_url" => test_repository_url,
         "repository_name" => "test-image",
-        "tags" => {
+        "digests" => {
           "latest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
           "1" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
           "1.2" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd"
+        },
+        "canonical_versions" => {
+          "latest" => "1.2.3",
+          "1" => "1.2.3",
+          "1.2" => "1.2.3"
         }
       }
     end

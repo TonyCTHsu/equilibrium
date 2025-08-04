@@ -9,15 +9,17 @@ module Equilibrium
     class Error < StandardError; end
 
     def build_catalog(data)
-      # Extract repository name and tags from the validated data structure
+      # Extract repository name, digests, and canonical versions from the validated data structure
       repository_name = data["repository_name"]
-      virtual_tags = data["tags"]
+      digests = data["digests"]
+      canonical_versions = data["canonical_versions"]
 
-      images = virtual_tags.map do |tag, digest|
+      images = digests.map do |tag, digest|
         {
           "name" => repository_name,
           "tag" => tag,
-          "digest" => digest
+          "digest" => digest,
+          "canonical_version" => canonical_versions[tag]
         }
       end
 

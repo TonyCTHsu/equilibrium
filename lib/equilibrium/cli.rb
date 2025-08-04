@@ -43,7 +43,7 @@ module Equilibrium
       full_repository_url = validate_repository_url(registry)
       all_tags = client.list_tags(full_repository_url)
       semantic_tags = processor.filter_semantic_tags(all_tags)
-      virtual_tags = processor.compute_virtual_tags(semantic_tags)
+      virtual_tags_result = processor.compute_virtual_tags(semantic_tags)
 
       # Extract repository name from URL
       repository_name = extract_repository_name(full_repository_url)
@@ -51,7 +51,8 @@ module Equilibrium
       output = {
         "repository_url" => full_repository_url,
         "repository_name" => repository_name,
-        "tags" => virtual_tags
+        "digests" => virtual_tags_result["digests"],
+        "canonical_versions" => virtual_tags_result["canonical_versions"]
       }
 
       # Validate output against schema before writing
@@ -75,13 +76,25 @@ module Equilibrium
       all_tags = client.list_tags(full_repository_url)
       mutable_tags = processor.filter_mutable_tags(all_tags)
 
+      # Get semantic tags to create canonical mapping for actual mutable tags
+      semantic_tags = processor.filter_semantic_tags(all_tags)
+      canonical_versions = {}
+
+      # For each actual mutable tag, find its canonical version by digest matching
+      mutable_tags.each do |mutable_tag, digest|
+        # Find semantic tag with same digest
+        canonical_version = semantic_tags.find { |_, sem_digest| sem_digest == digest }&.first
+        canonical_versions[mutable_tag] = canonical_version if canonical_version
+      end
+
       # Extract repository name from URL
       repository_name = extract_repository_name(full_repository_url)
 
       output = {
         "repository_url" => full_repository_url,
         "repository_name" => repository_name,
-        "tags" => mutable_tags
+        "digests" => mutable_tags,
+        "canonical_versions" => canonical_versions
       }
 
       # Validate output against schema before writing

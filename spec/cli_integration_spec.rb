@@ -60,10 +60,15 @@ RSpec.describe "CLI Integration", type: :aruba do
       {
         "repository_url" => "gcr.io/test-project/test-image",
         "repository_name" => "test-image",
-        "tags" => {
+        "digests" => {
           "latest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
           "1" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
           "1.2" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd"
+        },
+        "canonical_versions" => {
+          "latest" => "1.2.3",
+          "1" => "1.2.3",
+          "1.2" => "1.2.3"
         }
       }
     end
@@ -97,9 +102,13 @@ RSpec.describe "CLI Integration", type: :aruba do
       {
         "repository_url" => "gcr.io/test-project/test-image",
         "repository_name" => "test-image",
-        "tags" => {
+        "digests" => {
           "latest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
           "1" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd"
+        },
+        "canonical_versions" => {
+          "latest" => "1.2.3",
+          "1" => "1.2.3"
         }
       }
     end
