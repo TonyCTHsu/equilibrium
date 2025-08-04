@@ -5,6 +5,7 @@ require "json"
 require_relative "../equilibrium"
 require_relative "schema_validator"
 require_relative "schemas/expected_actual"
+require_relative "summary_formatter"
 
 module Equilibrium
   class CLI < Thor
@@ -29,7 +30,8 @@ module Equilibrium
       when "json"
         puts JSON.pretty_generate(analysis)
       when "summary"
-        print_analysis_summary(analysis)
+        formatter = SummaryFormatter.new
+        formatter.print_analysis_summary(analysis)
       end
     rescue => e
       error_and_exit(e.message)
@@ -63,7 +65,8 @@ module Equilibrium
       when "json"
         puts JSON.pretty_generate(output)
       when "summary"
-        print_expected_summary(output)
+        formatter = SummaryFormatter.new
+        formatter.print_tags_summary(output, "expected")
       end
     rescue Thor::Error
       raise  # Let Thor::Error bubble up for validation errors
@@ -111,7 +114,8 @@ module Equilibrium
       when "json"
         puts JSON.pretty_generate(output)
       when "summary"
-        print_actual_summary(output)
+        formatter = SummaryFormatter.new
+        formatter.print_tags_summary(output, "actual")
       end
     rescue Thor::Error
       raise  # Let Thor::Error bubble up for validation errors
@@ -201,130 +205,6 @@ module Equilibrium
         say usage, :red
       end
       exit 1
-    end
-
-    def print_analysis_summary(analysis)
-      say "Repository URL: #{analysis[:repository_url]}"
-      say ""
-
-      # Status overview table
-      status_color = (analysis[:status] == "perfect") ? :green : :yellow
-      status_symbol = (analysis[:status] == "perfect") ? "✓" : "⚠"
-
-      overview_data = [
-        ["Metric", "Count"],
-        ["Expected tags", analysis[:expected_count].to_s],
-        ["Actual tags", analysis[:actual_count].to_s],
-        ["Missing tags", analysis[:missing_tags].size.to_s],
-        ["Mismatched tags", analysis[:mismatched_tags].size.to_s],
-        ["Unexpected tags", analysis[:unexpected_tags].size.to_s]
-      ]
-
-      say "Analysis Overview:"
-      print_table(overview_data, borders: true)
-      say ""
-
-      say "#{status_symbol} Status: #{analysis[:status].upcase.tr("_", " ")}", status_color
-      say ""
-
-      # Show specific issue sections
-      has_issues = false
-
-      # Missing tags section
-      if analysis[:missing_tags].any?
-        has_issues = true
-        say "Missing Tags (should be created):"
-        missing_table = [["Tag", "Should Point To"]]
-        analysis[:missing_tags].each do |tag, digest|
-          short_digest = digest ? digest.split(":").last[0..11] : "unknown"
-          missing_table << [tag, short_digest]
-        end
-        print_table(missing_table, borders: true)
-        say ""
-      end
-
-      # Mismatched tags section
-      if analysis[:mismatched_tags].any?
-        has_issues = true
-        say "Mismatched Tags (pointing to wrong version):"
-        mismatched_table = [["Tag", "Expected", "Actual"]]
-        analysis[:mismatched_tags].each do |tag, details|
-          if details.is_a?(Hash)
-            expected = details[:expected] ? details[:expected].split(":").last[0..11] : "unknown"
-            actual = details[:actual] ? details[:actual].split(":").last[0..11] : "unknown"
-          else
-            expected = details ? details.split(":").last[0..11] : "unknown"
-            actual = "unknown"
-          end
-          mismatched_table << [tag, expected, actual]
-        end
-        print_table(mismatched_table, borders: true)
-        say ""
-      end
-
-      # Unexpected tags section
-      if analysis[:unexpected_tags].any?
-        has_issues = true
-        say "Unexpected Tags (should be removed):"
-        unexpected_table = [["Tag", "Currently Points To"]]
-        analysis[:unexpected_tags].each do |tag, digest|
-          short_digest = digest ? digest.split(":").last[0..11] : "unknown"
-          unexpected_table << [tag, short_digest]
-        end
-        print_table(unexpected_table, borders: true)
-        say ""
-      end
-
-      if has_issues
-        say "To see detailed remediation commands, use:"
-        say "  equilibrium analyze --expected expected.json --actual actual.json --format=json | jq '.remediation_plan'"
-      else
-        say "✓ Registry is in perfect equilibrium!", :green
-      end
-    end
-
-    def print_expected_summary(output)
-      say "Repository: #{output["repository_name"]}"
-      say "URL: #{output["repository_url"]}"
-      say ""
-
-      mutable_tags = output["digests"]
-      canonical_versions = output["canonical_versions"]
-
-      say "Expected mutable tags (#{mutable_tags.size}):"
-      say ""
-
-      # Create table data: [["Tag", "Version", "Digest"]]
-      table_data = [["Tag", "Version", "Digest"]]
-      mutable_tags.keys.sort.each do |tag|
-        canonical_version = canonical_versions[tag]
-        digest = mutable_tags[tag]
-        table_data << [tag, canonical_version, digest]
-      end
-
-      print_table(table_data, borders: true)
-    end
-
-    def print_actual_summary(output)
-      say "Repository: #{output["repository_name"]}"
-      say "URL: #{output["repository_url"]}"
-      say ""
-
-      mutable_tags = output["digests"]
-      canonical_versions = output["canonical_versions"]
-
-      say "Actual mutable tags (#{mutable_tags.size}):"
-      say ""
-
-      # Create table data: [["Tag", "Version", "Digest"]]
-      table_data = [["Tag", "Version", "Digest"]]
-      mutable_tags.keys.sort.each do |tag|
-        canonical_version = canonical_versions[tag]
-        digest = mutable_tags[tag]
-        table_data << [tag, canonical_version, digest]
-      end
-
-      print_table(table_data, borders: true)
     end
   end
 end
