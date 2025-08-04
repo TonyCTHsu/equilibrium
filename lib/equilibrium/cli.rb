@@ -36,6 +36,7 @@ module Equilibrium
     end
 
     desc "expected REPOSITORY_URL", "Output expected mutable tags to stdout"
+    option :format, type: :string, default: "summary", enum: ["json", "summary"], desc: "Output format"
     def expected(registry)
       client = RegistryClient.new
       processor = TagProcessor.new
@@ -58,7 +59,12 @@ module Equilibrium
       # Validate output against schema before writing
       validate_expected_actual_schema(output)
 
-      puts JSON.pretty_generate(output)
+      case options[:format]
+      when "json"
+        puts JSON.pretty_generate(output)
+      when "summary"
+        print_expected_summary(output)
+      end
     rescue Thor::Error
       raise  # Let Thor::Error bubble up for validation errors
     rescue RegistryClient::Error => e
@@ -68,6 +74,7 @@ module Equilibrium
     end
 
     desc "actual REPOSITORY_URL", "Output actual mutable tags to stdout"
+    option :format, type: :string, default: "summary", enum: ["json", "summary"], desc: "Output format"
     def actual(registry)
       client = RegistryClient.new
       processor = TagProcessor.new
@@ -100,7 +107,12 @@ module Equilibrium
       # Validate output against schema before writing
       validate_expected_actual_schema(output)
 
-      puts JSON.pretty_generate(output)
+      case options[:format]
+      when "json"
+        puts JSON.pretty_generate(output)
+      when "summary"
+        print_actual_summary(output)
+      end
     rescue Thor::Error
       raise  # Let Thor::Error bubble up for validation errors
     rescue RegistryClient::Error => e
@@ -224,6 +236,36 @@ module Equilibrium
         say ""
         say "To see remediation commands, use:"
         say "  equilibrium analyze --expected expected.json --actual actual.json --format=json | jq '.remediation_plan'"
+      end
+    end
+
+    def print_expected_summary(output)
+      say "Repository: #{output["repository_name"]}"
+      say "URL: #{output["repository_url"]}"
+      say ""
+
+      mutable_tags = output["digests"]
+      canonical_versions = output["canonical_versions"]
+
+      say "Expected mutable tags (#{mutable_tags.size}):"
+      mutable_tags.keys.sort.each do |tag|
+        canonical_version = canonical_versions[tag]
+        say "  #{tag} -> #{canonical_version}"
+      end
+    end
+
+    def print_actual_summary(output)
+      say "Repository: #{output["repository_name"]}"
+      say "URL: #{output["repository_url"]}"
+      say ""
+
+      mutable_tags = output["digests"]
+      canonical_versions = output["canonical_versions"]
+
+      say "Actual mutable tags (#{mutable_tags.size}):"
+      mutable_tags.keys.sort.each do |tag|
+        canonical_version = canonical_versions[tag] || "unknown"
+        say "  #{tag} -> #{canonical_version}"
       end
     end
   end

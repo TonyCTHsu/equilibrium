@@ -28,7 +28,7 @@ RSpec.describe "Integration Tests" do
       cli = Equilibrium::CLI.new
 
       # Step 1: Generate expected tags
-      expected_output = capture_stdout { cli.expected(test_repository_url) }
+      expected_output = capture_stdout { cli.invoke(:expected, [test_repository_url], format: "json") }
       expected_data = JSON.parse(expected_output)
       expect(expected_data).to have_key("repository_url")
       expect(expected_data).to have_key("repository_name")
@@ -36,7 +36,7 @@ RSpec.describe "Integration Tests" do
       expect(expected_data).to have_key("canonical_versions")
 
       # Step 2: Generate actual tags
-      actual_output = capture_stdout { cli.actual(test_repository_url) }
+      actual_output = capture_stdout { cli.invoke(:actual, [test_repository_url], format: "json") }
       actual_data = JSON.parse(actual_output)
       expect(actual_data).to have_key("repository_url")
       expect(actual_data).to have_key("digests")
@@ -76,7 +76,7 @@ RSpec.describe "Integration Tests" do
 
       # Generate expected tags
       expected_output = capture_stdout do
-        cli.invoke(:expected, [test_repository_url])
+        cli.invoke(:expected, [test_repository_url], format: "json")
       end
 
       # Validate expected output schema
@@ -158,7 +158,7 @@ RSpec.describe "Integration Tests" do
       # Test that output can be processed with jq
       cli = Equilibrium::CLI.new
       expected_output = capture_stdout do
-        cli.invoke(:expected, [test_repository_url])
+        cli.invoke(:expected, [test_repository_url], format: "json")
       end
 
       # Extract repository name using jq
@@ -181,7 +181,7 @@ RSpec.describe "Integration Tests" do
       begin
         # Generate expected tags to file
         expected_output = capture_stdout do
-          cli.invoke(:expected, [test_repository_url])
+          cli.invoke(:expected, [test_repository_url], format: "json")
         end
         expected_file.write(expected_output)
         expected_file.close

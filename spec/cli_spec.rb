@@ -16,7 +16,7 @@ RSpec.describe Equilibrium::CLI do
     end
 
     it "outputs expected mutable tags with correct schema" do
-      output = capture_stdout { cli.expected(test_repository_url) }
+      output = capture_stdout { cli.invoke(:expected, [test_repository_url], format: "json") }
       data = JSON.parse(output)
 
       expect(data).to have_key("repository_url")
@@ -31,7 +31,7 @@ RSpec.describe Equilibrium::CLI do
     end
 
     it "validates output against expected/actual schema" do
-      output = capture_stdout { cli.expected(test_repository_url) }
+      output = capture_stdout { cli.invoke(:expected, [test_repository_url], format: "json") }
       data = JSON.parse(output)
 
       schemer = JSONSchemer.schema(Equilibrium::Schemas::EXPECTED_ACTUAL)
@@ -41,7 +41,7 @@ RSpec.describe Equilibrium::CLI do
     end
 
     it "computes correct virtual tags" do
-      output = capture_stdout { cli.expected(test_repository_url) }
+      output = capture_stdout { cli.invoke(:expected, [test_repository_url], format: "json") }
       data = JSON.parse(output)
       tags = data["digests"]
 
@@ -72,6 +72,28 @@ RSpec.describe Equilibrium::CLI do
         capture_stdout { cli.expected(test_repository_url) }
       }.to raise_error(/Request failed/)
     end
+
+    describe "format options" do
+      it "outputs JSON when format is json" do
+        output = capture_stdout { cli.invoke(:expected, [test_repository_url], format: "json") }
+        expect { JSON.parse(output) }.not_to raise_error
+        data = JSON.parse(output)
+        expect(data).to have_key("repository_url")
+      end
+
+      it "outputs summary when format is summary" do
+        output = capture_stdout { cli.invoke(:expected, [test_repository_url], format: "summary") }
+        expect(output).to include("Repository: test-image")
+        expect(output).to include("Expected mutable tags")
+        expect(output).not_to include("{")  # Should not contain JSON
+      end
+
+      it "defaults to summary format" do
+        output = capture_stdout { cli.invoke(:expected, [test_repository_url], {}) }
+        expect(output).to include("Repository: test-image")
+        expect(output).to include("Expected mutable tags")
+      end
+    end
   end
 
   describe "#actual" do
@@ -80,7 +102,7 @@ RSpec.describe Equilibrium::CLI do
     end
 
     it "outputs actual mutable tags with correct schema" do
-      output = capture_stdout { cli.actual(test_repository_url) }
+      output = capture_stdout { cli.invoke(:actual, [test_repository_url], format: "json") }
       data = JSON.parse(output)
 
       expect(data).to have_key("repository_url")
@@ -93,7 +115,7 @@ RSpec.describe Equilibrium::CLI do
     end
 
     it "validates output against expected/actual schema" do
-      output = capture_stdout { cli.actual(test_repository_url) }
+      output = capture_stdout { cli.invoke(:actual, [test_repository_url], format: "json") }
       data = JSON.parse(output)
 
       schemer = JSONSchemer.schema(Equilibrium::Schemas::EXPECTED_ACTUAL)
@@ -103,7 +125,7 @@ RSpec.describe Equilibrium::CLI do
     end
 
     it "filters out non-mutable tags" do
-      output = capture_stdout { cli.actual(test_repository_url) }
+      output = capture_stdout { cli.invoke(:actual, [test_repository_url], format: "json") }
       data = JSON.parse(output)
       tags = data["digests"]
 
@@ -116,6 +138,28 @@ RSpec.describe Equilibrium::CLI do
       # Should only include mutable tag patterns
       tags.keys.each do |tag|
         expect(tag).to match(/^(latest|\d+|\d+\.\d+)$/)
+      end
+    end
+
+    describe "format options" do
+      it "outputs JSON when format is json" do
+        output = capture_stdout { cli.invoke(:actual, [test_repository_url], format: "json") }
+        expect { JSON.parse(output) }.not_to raise_error
+        data = JSON.parse(output)
+        expect(data).to have_key("repository_url")
+      end
+
+      it "outputs summary when format is summary" do
+        output = capture_stdout { cli.invoke(:actual, [test_repository_url], format: "summary") }
+        expect(output).to include("Repository: test-image")
+        expect(output).to include("Actual mutable tags")
+        expect(output).not_to include("{")  # Should not contain JSON
+      end
+
+      it "defaults to summary format" do
+        output = capture_stdout { cli.invoke(:actual, [test_repository_url], {}) }
+        expect(output).to include("Repository: test-image")
+        expect(output).to include("Actual mutable tags")
       end
     end
   end
