@@ -1,6 +1,3 @@
-# Generated fixture data from registries
-fixtures/
-
 # Test temporary files (but keep the directory structure)
 tmp/**
 !tmp/
@@ -8,6 +5,7 @@ tmp/**
 
 # Claude Code local settings
 .claude/
+CLAUDE.local.md
 
 # Ruby dependencies
 vendor/
@@ -15,3 +13,5 @@ vendor/
 
 # RSpec output
 .rspec_status
+
+Gemfile.lock

@@ -20,9 +20,6 @@ jobs:
     - name: Run StandardRB
       run: bundle exec standardrb
 
-    - name: Run shellcheck
-      run: shellcheck src/*.sh
-
     - name: Check for trailing whitespace
       run: ./.github/scripts/check-whitespace.sh
       continue-on-error: true
@@ -40,17 +37,78 @@ jobs:
         ruby-version: 3.2.8
         bundler-cache: true
 
-    - run: jq --version
+    - run: bundle exec rspec
 
-    - name: Authenticate to Google Cloud
-      uses: google-github-actions/auth@v2
+  validate-registries:
+    runs-on: ubuntu-latest
+    name: Validate ${{ matrix.registry-name }}
+    strategy:
+      matrix:
+        include:
+          - registry: "gcr.io/datadoghq/apm-inject"
+            registry-name: "apm-inject"
+            file-suffix: "inject"
+          - registry: "gcr.io/datadoghq/dd-lib-java-init"
+            registry-name: "dd-lib-java-init"
+            file-suffix: "java"
+          - registry: "gcr.io/datadoghq/dd-lib-ruby-init"
+            registry-name: "dd-lib-ruby-init"
+            file-suffix: "ruby"
+          - registry: "gcr.io/datadoghq/dd-lib-python-init"
+            registry-name: "dd-lib-python-init"
+            file-suffix: "python"
+          - registry: "gcr.io/datadoghq/dd-lib-js-init"
+            registry-name: "dd-lib-js-init"
+            file-suffix: "js"
+          - registry: "gcr.io/datadoghq/dd-lib-dotnet-init"
+            registry-name: "dd-lib-dotnet-init"
+            file-suffix: "dotnet"
+          - registry: "gcr.io/datadoghq/dd-lib-php-init"
+            registry-name: "dd-lib-php-init"
+            file-suffix: "php"
+      fail-fast: false  # Continue testing other registries even if one fails
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
       with:
-        credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+        ruby-version: 3.2.8
+        bundler-cache: true
+    - run: bundle install
+    - name: Make equilibrium executable
+      run: chmod +x ./equilibrium
 
-    - name: Set up Google Cloud SDK
-      uses: google-github-actions/setup-gcloud@v2
+    - name: Validate ${{ matrix.registry-name }} registry
+      run: |
+        echo "🔍 Validating ${{ matrix.registry }}..."
+        bundle exec ./equilibrium expected ${{ matrix.registry }} > expected-${{ matrix.file-suffix }}.json
+        bundle exec ./equilibrium actual ${{ matrix.registry }} > actual-${{ matrix.file-suffix }}.json
+        bundle exec ./equilibrium analyze --expected expected-${{ matrix.file-suffix }}.json --actual actual-${{ matrix.file-suffix }}.json --format json > analysis-${{ matrix.file-suffix }}.json
 
-    - run: gcloud info
+        # Display results
+        echo "📊 Analysis Results for ${{ matrix.registry-name }}:"
+        cat analysis-${{ matrix.file-suffix }}.json | jq '.'
 
-    - name: Fetch all registry data and run equilibrium validation
-      run: ./src/main.sh
+        # Check if registry is in equilibrium
+        status=$(cat analysis-${{ matrix.file-suffix }}.json | jq -r '.status')
+        if [ "$status" != "perfect" ]; then
+          echo "❌ Registry ${{ matrix.registry-name }} is NOT in equilibrium (status: $status)"
+          echo "📋 Remediation plan:"
+          cat analysis-${{ matrix.file-suffix }}.json | jq -r '.remediation_plan[].command'
+          exit 1
+        else
+          echo "✅ Registry ${{ matrix.registry-name }} is in perfect equilibrium!"
+        fi
+
+    - name: Upload analysis results as artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: equilibrium-analysis-${{ matrix.file-suffix }}
+        path: |
+          expected-${{ matrix.file-suffix }}.json
+          actual-${{ matrix.file-suffix }}.json
+          analysis-${{ matrix.file-suffix }}.json
+        retention-days: 30

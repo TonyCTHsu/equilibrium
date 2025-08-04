@@ -1,20 +1,27 @@
-require "fileutils"
+# frozen_string_literal: true
+
+require "rspec"
+require "json"
+require "json_schemer"
+require "webmock/rspec"
+
+# Load the main library
+require_relative "../lib/equilibrium"
+
+# Load support files
+Dir[File.expand_path("support/**/*.rb", __dir__)].each { |f| require f }
 
 RSpec.configure do |config|
-  config.expect_with :rspec do |expectations|
-    expectations.include_chain_clauses_in_custom_matcher_descriptions = true
-  end
+  # Enable WebMock for HTTP request stubbing
+  WebMock.disable_net_connect!(allow_localhost: true)
 
-  config.mock_with :rspec do |mocks|
-    mocks.verify_partial_doubles = true
-  end
-
-  config.shared_context_metadata_behavior = :apply_to_host_groups
-
-  # Clean up tmp directory contents after all tests (keep directory and .gitkeep)
+  # Clean up any temporary files after tests
   config.after(:suite) do
     Dir.glob("tmp/*").each do |file|
       FileUtils.rm_rf(file) unless file.end_with?(".gitkeep")
     end
   end
+
+  # Include test helpers
+  config.include EquilibriumTestHelpers
 end
