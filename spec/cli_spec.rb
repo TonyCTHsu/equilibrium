@@ -218,7 +218,8 @@ RSpec.describe Equilibrium::CLI do
       actual_data_missing = {
         "repository_url" => test_repository_url,
         "repository_name" => "test-image",
-        "tags" => {"latest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd"} # Missing "1" and "1.2"
+        "digests" => {"latest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd"}, # Missing "1" and "1.2"
+        "canonical_versions" => {"latest" => "1.2.3"}
       }
 
       expected_file = create_temp_json_file(expected_data)
@@ -239,10 +240,15 @@ RSpec.describe Equilibrium::CLI do
       actual_data_mismatched = {
         "repository_url" => test_repository_url,
         "repository_name" => "test-image",
-        "tags" => {
+        "digests" => {
           "latest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
           "1" => "sha256:def456789012345678901234567890123456789012345678901234567890abcd", # Wrong digest
           "1.2" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd"
+        },
+        "canonical_versions" => {
+          "latest" => "1.2.3",
+          "1" => "1.2.3",
+          "1.2" => "1.2.3"
         }
       }
 
