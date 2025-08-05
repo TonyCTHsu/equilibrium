@@ -1,0 +1,63 @@
+name: Validate Registries
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Run daily at 9 AM UTC
+    - cron: '0 9 * * *'
+
+jobs:
+  validate-registries:
+    runs-on: ubuntu-latest
+    name: Validate ${{ matrix.registry-name }}
+    strategy:
+      matrix:
+        include:
+          - registry: "gcr.io/datadoghq/apm-inject"
+            registry-name: "apm-inject"
+            file-suffix: "inject"
+          - registry: "gcr.io/datadoghq/dd-lib-java-init"
+            registry-name: "dd-lib-java-init"
+            file-suffix: "java"
+          - registry: "gcr.io/datadoghq/dd-lib-ruby-init"
+            registry-name: "dd-lib-ruby-init"
+            file-suffix: "ruby"
+          - registry: "gcr.io/datadoghq/dd-lib-python-init"
+            registry-name: "dd-lib-python-init"
+            file-suffix: "python"
+          - registry: "gcr.io/datadoghq/dd-lib-js-init"
+            registry-name: "dd-lib-js-init"
+            file-suffix: "js"
+          - registry: "gcr.io/datadoghq/dd-lib-dotnet-init"
+            registry-name: "dd-lib-dotnet-init"
+            file-suffix: "dotnet"
+          - registry: "gcr.io/datadoghq/dd-lib-php-init"
+            registry-name: "dd-lib-php-init"
+            file-suffix: "php"
+      fail-fast: false  # Continue testing other registries even if one fails
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: .ruby-version
+        bundler-cache: true
+    - run: bundle install
+    - name: Make equilibrium executable
+      run: chmod +x ./equilibrium
+
+    - name: Validate ${{ matrix.registry-name }} registry
+      run: ./.github/scripts/validate-registry.sh ${{ matrix.registry }} ${{ matrix.file-suffix }}
+
+    - name: Upload analysis results as artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: equilibrium-analysis-${{ matrix.file-suffix }}
+        path: |
+          expected-${{ matrix.file-suffix }}.json
+          actual-${{ matrix.file-suffix }}.json
+          analysis-${{ matrix.file-suffix }}.json
+        retention-days: 30
