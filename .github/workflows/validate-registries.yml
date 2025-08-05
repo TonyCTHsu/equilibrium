@@ -49,15 +49,15 @@ jobs:
       run: chmod +x ./equilibrium
 
     - name: Validate ${{ matrix.registry-name }} registry
-      run: ./.github/scripts/validate-registry.sh ${{ matrix.registry }} ${{ matrix.file-suffix }}
+      run: |
+        TEMP_DIR=$(mktemp -d)
+        echo "TEMP_DIR=$TEMP_DIR" >> $GITHUB_ENV
+        ./.github/scripts/validate-registry.sh ${{ matrix.registry }} ${{ matrix.file-suffix }} "$TEMP_DIR"
 
     - name: Upload analysis results as artifacts
       uses: actions/upload-artifact@v4
       if: always()
       with:
         name: equilibrium-analysis-${{ matrix.file-suffix }}
-        path: |
-          expected-${{ matrix.file-suffix }}.json
-          actual-${{ matrix.file-suffix }}.json
-          analysis-${{ matrix.file-suffix }}.json
+        path: ${{ env.TEMP_DIR }}/*-${{ matrix.file-suffix }}.json
         retention-days: 30
