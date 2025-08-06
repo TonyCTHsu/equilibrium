@@ -28,3 +28,10 @@ jobs:
 
       - name: Publish to RubyGems
         uses: rubygems/release-gem@v1
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: CHANGELOG.md
+          files: |
+            pkg/*.gem
