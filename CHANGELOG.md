@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2025-08-06
+
+### Added
+- GitHub Packages publishing support in release workflow
+- Draft mode for GitHub releases requiring manual review
+- Enhanced release automation with artifact attachment
+
+### Fixed
+- Preserve descending tag order in summary format output
+- Consistent descending ordering for expected and actual outputs
+
+### Changed
+- Reorganized spec files to mirror lib directory structure
+- Extracted TagSorter utility with comprehensive unit tests
+- Enhanced RegistryClient with pagination analysis capabilities
+
 ## [0.1.0] - 2025-08-05
 
 ### Added
@@ -37,4 +53,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Detailed architecture overview and data flow diagrams
 - Complete command reference and examples
 
+[0.1.1]: https://github.com/DataDog/equilibrium/releases/tag/v0.1.1
 [0.1.0]: https://github.com/DataDog/equilibrium/releases/tag/v0.1.0
