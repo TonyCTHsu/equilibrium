@@ -26,6 +26,29 @@ module Equilibrium
   # by some registries (like GCR). Most registries follow the Docker Registry v2 spec
   # which only returns 'name' and 'tags' fields. To get digest information, separate
   # calls to /v2/<name>/manifests/<tag> are required per the official specification.
+  #
+  # PAGINATION ANALYSIS (August 2025):
+  # Current implementation fetches ALL tags in single API call. Analysis of production registries:
+  # - apm-inject: 29 tags
+  # - dd-lib-dotnet-init: 31 tags
+  # - dd-lib-java-init: 18 tags
+  # - dd-lib-js-init: 56 tags (largest)
+  # - dd-lib-php-init: 10 tags
+  # - dd-lib-python-init: 27 tags
+  # - dd-lib-ruby-init: 19 tags
+  # Total: 190 tags across all registries
+  #
+  # GCR PAGINATION RESEARCH FINDINGS:
+  # - DOCUMENTED LIMIT: 10,000 items for format-specific API requests
+  #   Source: https://cloud.google.com/artifact-registry/quotas
+  # - NO PAGINATION SUPPORT: GCR ignores Docker Registry v2 pagination parameters ('n', 'last')
+  #   Source: https://stackoverflow.com/questions/38307259 (unresolved since 2016)
+  # - ALL-OR-NOTHING: Returns complete tag lists up to 10k limit, then truncates unpredictably
+  # - NO PER-PAGE LIMIT: Not documented, not applicable due to lack of pagination support
+  #
+  # RECOMMENDATION: Current single-request approach is sufficient.
+  # Implementation complexity for pagination: 3-4 hours with minimal benefit.
+  # Consider only if individual repositories approach thousands of tags.
   class RegistryClient
     class Error < StandardError; end
 
