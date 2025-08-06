@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "spec_helper"
-require_relative "../lib/equilibrium/schemas/catalog"
-require_relative "../lib/equilibrium/catalog_builder"
+require_relative "../spec_helper"
+require_relative "../../lib/equilibrium/schemas/catalog"
+require_relative "../../lib/equilibrium/catalog_builder"
 
 RSpec.describe Equilibrium::CatalogBuilder do
   let(:builder) { described_class.new }

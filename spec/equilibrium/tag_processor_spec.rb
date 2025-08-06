@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "spec_helper"
+require_relative "../spec_helper"
 require "digest"
-require_relative "../lib/equilibrium/tag_processor"
+require_relative "../../lib/equilibrium/tag_processor"
 
 RSpec.describe Equilibrium::TagProcessor do
   let(:processor) { described_class.new }

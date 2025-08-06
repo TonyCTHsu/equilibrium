@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "spec_helper"
-require_relative "../lib/equilibrium/schema_validator"
+require_relative "../spec_helper"
+require_relative "../../lib/equilibrium/schema_validator"
 
 RSpec.describe Equilibrium::SchemaValidator do
   let(:simple_schema) do

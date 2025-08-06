@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "spec_helper"
-require_relative "../lib/equilibrium/registry_client"
+require_relative "../spec_helper"
+require_relative "../../lib/equilibrium/registry_client"
 
 RSpec.describe Equilibrium::RegistryClient do
   let(:client) { described_class.new }

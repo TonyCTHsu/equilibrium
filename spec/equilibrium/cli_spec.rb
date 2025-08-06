@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "spec_helper"
+require_relative "../spec_helper"
 require "thor"
-require_relative "../lib/equilibrium/cli"
+require_relative "../../lib/equilibrium/cli"
 
 RSpec.describe Equilibrium::CLI do
   include EquilibriumTestHelpers

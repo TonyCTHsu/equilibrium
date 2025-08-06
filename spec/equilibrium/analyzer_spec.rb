@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require "spec_helper"
+require_relative "../spec_helper"
 require "digest"
-require_relative "../lib/equilibrium/analyzer"
+require_relative "../../lib/equilibrium/analyzer"
 
 RSpec.describe Equilibrium::Analyzer do
   let(:analyzer) { described_class.new }
