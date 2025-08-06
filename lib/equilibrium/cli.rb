@@ -52,8 +52,8 @@ module Equilibrium
       repository_name = extract_repository_name(full_repository_url)
 
       # Sort both digests and canonical_versions in descending order right before output
-      sorted_digests = processor.sort_tags_descending(virtual_tags_result["digests"])
-      sorted_canonical_versions = processor.sort_tags_descending(virtual_tags_result["canonical_versions"])
+      sorted_digests = TagSorter.sort_descending(virtual_tags_result["digests"])
+      sorted_canonical_versions = TagSorter.sort_descending(virtual_tags_result["canonical_versions"])
 
       output = {
         "repository_url" => full_repository_url,
@@ -105,8 +105,8 @@ module Equilibrium
       repository_name = extract_repository_name(full_repository_url)
 
       # Sort both digests and canonical_versions in descending order right before output
-      sorted_digests = processor.sort_tags_descending(mutable_tags)
-      sorted_canonical_versions = processor.sort_tags_descending(canonical_versions)
+      sorted_digests = TagSorter.sort_descending(mutable_tags)
+      sorted_canonical_versions = TagSorter.sort_descending(canonical_versions)
 
       output = {
         "repository_url" => full_repository_url,
