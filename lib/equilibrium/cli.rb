@@ -51,11 +51,15 @@ module Equilibrium
       # Extract repository name from URL
       repository_name = extract_repository_name(full_repository_url)
 
+      # Sort both digests and canonical_versions in descending order right before output
+      sorted_digests = processor.sort_tags_descending(virtual_tags_result["digests"])
+      sorted_canonical_versions = processor.sort_tags_descending(virtual_tags_result["canonical_versions"])
+
       output = {
         "repository_url" => full_repository_url,
         "repository_name" => repository_name,
-        "digests" => virtual_tags_result["digests"],
-        "canonical_versions" => virtual_tags_result["canonical_versions"]
+        "digests" => sorted_digests,
+        "canonical_versions" => sorted_canonical_versions
       }
 
       # Validate output against schema before writing
@@ -100,11 +104,15 @@ module Equilibrium
       # Extract repository name from URL
       repository_name = extract_repository_name(full_repository_url)
 
+      # Sort both digests and canonical_versions in descending order right before output
+      sorted_digests = processor.sort_tags_descending(mutable_tags)
+      sorted_canonical_versions = processor.sort_tags_descending(canonical_versions)
+
       output = {
         "repository_url" => full_repository_url,
         "repository_name" => repository_name,
-        "digests" => mutable_tags,
-        "canonical_versions" => canonical_versions
+        "digests" => sorted_digests,
+        "canonical_versions" => sorted_canonical_versions
       }
 
       # Validate output against schema before writing

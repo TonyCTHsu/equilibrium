@@ -57,16 +57,44 @@ module Equilibrium
 
     def filter_semantic_tags(all_tags)
       # Filter semantic tags (canonical_tags.json): exact major.minor.patch format
-      filtered = all_tags.select { |tag, _| semantic_version?(tag) }
-      # Sort by key in reverse order (matching original jq: sort_by(.key) | reverse)
-      filtered.sort_by { |tag, _| tag }.reverse.to_h
+      all_tags.select { |tag, _| semantic_version?(tag) }
     end
 
     def filter_mutable_tags(all_tags)
       # Filter mutable tags (actual_tags.json): latest, digits, or major.minor format
-      filtered = all_tags.select { |tag, _| mutable_tag?(tag) }
-      # Sort by key in reverse order (matching original jq: sort_by(.key) | reverse)
-      filtered.sort_by { |tag, _| tag }.reverse.to_h
+      all_tags.select { |tag, _| mutable_tag?(tag) }
+    end
+
+    # Sort tags in descending version order: latest first, then major versions (descending), then minor versions (descending)
+    def sort_tags_descending(tags_hash)
+      sorted = {}
+
+      # Add latest first if present
+      if tags_hash.key?("latest")
+        sorted["latest"] = tags_hash["latest"]
+      end
+
+      # Sort other tags by version (descending)
+      other_tags = tags_hash.keys.reject { |k| k == "latest" }
+      sorted_tags = other_tags.sort_by do |tag|
+        if tag.match?(/^[0-9]+$/)
+          # Major version: sort by numeric value (descending)
+          [-tag.to_i]
+        elsif tag.match?(/^[0-9]+\.[0-9]+$/)
+          # Minor version: sort by version (descending)
+          parts = tag.split(".").map(&:to_i)
+          [-parts[0], -parts[1]]
+        else
+          # Fallback for any unexpected formats - sort alphabetically
+          [1, tag]
+        end
+      end
+
+      sorted_tags.each do |tag|
+        sorted[tag] = tags_hash[tag]
+      end
+
+      sorted
     end
 
     private
