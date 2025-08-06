@@ -104,7 +104,7 @@ module Equilibrium
 
       # Create table data: [["Tag", "Version", "Digest"]]
       table_data = [["Tag", "Version", "Digest"]]
-      mutable_tags.keys.sort.each do |tag|
+      mutable_tags.keys.each do |tag|
         canonical_version = canonical_versions[tag]
         digest = mutable_tags[tag]
         table_data << [tag, canonical_version, digest]
