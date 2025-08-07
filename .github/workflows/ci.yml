@@ -22,20 +22,20 @@ jobs:
 
     - name: Check for trailing whitespace
       run: ./.github/scripts/check-whitespace.sh
-      continue-on-error: true
 
   changelog:
     runs-on: ubuntu-latest
     name: Validate Changelog
-
+    if: startsWith(github.ref_name, 'release')
     steps:
     - uses: actions/checkout@v4
 
     - name: Validate Changelog
       uses: mindsers/changelog-reader-action@v2
       with:
-        validation_level: error
         path: ./CHANGELOG.md
+        validation_level: error
+        validation_depth: 100
 
   test:
     runs-on: ubuntu-latest
