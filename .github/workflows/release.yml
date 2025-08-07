@@ -34,10 +34,17 @@ jobs:
           GEM_HOST_API_KEY: ${{ secrets.GITHUB_TOKEN }}
         run: gem push --host https://rubygems.pkg.github.com/TonyCTHsu pkg/*.gem
 
+      - name: Get Changelog Entry
+        id: changelog_reader
+        uses: mindsers/changelog-reader-action@v2
+        with:
+          version: ${{ github.ref_name }}
+          path: ./CHANGELOG.md
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           draft: true
-          body_path: CHANGELOG.md
+          body: ${{ steps.changelog_reader.outputs.changes }}
           files: |
             pkg/*.gem
