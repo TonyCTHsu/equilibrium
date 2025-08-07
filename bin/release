@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -e
+
+# Get version from gemspec
+VERSION=$(ruby -e "spec = Gem::Specification.load('equilibrium.gemspec'); puts spec.version")
+TAG="v$VERSION"
+
+echo "Creating and pushing tag: $TAG"
+
+# Create and push the tag
+git tag "$TAG"
+git push origin "$TAG"
+
+echo "Tag $TAG pushed successfully. Release workflow will be triggered."

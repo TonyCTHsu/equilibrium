@@ -3,11 +3,12 @@ name: Release
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - 'v[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    if: github.ref_type == 'tag'
 
     permissions:
       contents: write
@@ -30,8 +31,18 @@ jobs:
       - name: Get version from gemspec
         id: version
         run: |
-          VERSION=$(ruby -e "load 'equilibrium.gemspec'; puts spec.version")
+          VERSION=$(ruby -e "spec = Gem::Specification.load('equilibrium.gemspec'); puts spec.version")
           echo "number=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Validate tag matches version
+        run: |
+          TAG_VERSION=${GITHUB_REF_NAME#v}
+          GEMSPEC_VERSION=${{ steps.version.outputs.number }}
+          if [ "$TAG_VERSION" != "$GEMSPEC_VERSION" ]; then
+            echo "Error: Tag version ($TAG_VERSION) does not match gemspec version ($GEMSPEC_VERSION)"
+            exit 1
+          fi
+          echo "Tag version matches gemspec version: $GEMSPEC_VERSION"
 
       - name: Publish to RubyGems
         uses: rubygems/release-gem@v1

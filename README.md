@@ -307,6 +307,41 @@ if grep -q '"status": "out_of_equilibrium"' report.json; then
 fi
 ```
 
+## Development
+
+### Prerequisites
+
+- **Ruby** (>= 3.0.0) with Bundler
+- **No authentication required** for public Google Container Registry (GCR) access
+- **Pure Ruby implementation** - uses only Ruby standard library (Net::HTTP) for HTTP requests
+
+### Code Quality
+
+```bash
+# Ruby linting
+bundle exec standardrb
+bundle exec standardrb --fix
+
+# Run tests
+bundle exec rspec
+```
+
+### Release Process
+
+To create a new release:
+
+```bash
+# Update version in lib/equilibrium/version.rb, then:
+./bin/release
+```
+
+The script automatically:
+1. Reads the version from `equilibrium.gemspec`
+2. Creates a git tag with `v` prefix (e.g., `v0.1.1`)
+3. Pushes the tag to trigger the automated release workflow
+
+The GitHub Actions workflow validates that the tag version matches the gemspec version before publishing to RubyGems and GitHub Packages.
+
 ## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
