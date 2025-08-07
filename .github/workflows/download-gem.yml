@@ -26,11 +26,14 @@ jobs:
           gem sources --add https://TonyCTHsu:${{ secrets.GITHUB_TOKEN }}@rubygems.pkg.github.com/TonyCTHsu
           gem sources --list
 
-      - name: Download gem
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Download gem via fetch
         run: |
           gem fetch equilibrium --source https://rubygems.pkg.github.com/TonyCTHsu --verbose
+
+      - name: Download gem via download
+        run: |
+          gem install equilibrium --source https://rubygems.pkg.github.com/TonyCTHsu --verbose
+
 
   download-via-bundler:
     runs-on: ubuntu-latest
