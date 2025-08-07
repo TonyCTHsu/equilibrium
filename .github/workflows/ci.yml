@@ -40,7 +40,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
     name: Test
-    needs: [lint, changelog]
 
     steps:
     - uses: actions/checkout@v4
