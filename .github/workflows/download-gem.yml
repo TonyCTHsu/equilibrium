@@ -20,8 +20,10 @@ jobs:
 
       - name: Configure gem source for GitHub Packages
         run: |
-          gem sources --add https://rubygems.pkg.github.com/TonyCTHsu
+          gem sources --add https://TonyCTHsu:${{ secrets.GITHUB_TOKEN }}@rubygems.pkg.github.com/TonyCTHsu
           bundle config https://rubygems.pkg.github.com/TonyCTHsu ${{ secrets.GITHUB_TOKEN }}
+
+      - run: gem sources --list
 
       - name: Download gem
         env:
