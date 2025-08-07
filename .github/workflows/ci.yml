@@ -24,10 +24,23 @@ jobs:
       run: ./.github/scripts/check-whitespace.sh
       continue-on-error: true
 
+  changelog:
+    runs-on: ubuntu-latest
+    name: Validate Changelog
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Validate Changelog
+      uses: mindsers/changelog-reader-action@v2
+      with:
+        validation_level: error
+        path: ./CHANGELOG.md
+
   test:
     runs-on: ubuntu-latest
     name: Test
-    needs: lint
+    needs: [lint, changelog]
 
     steps:
     - uses: actions/checkout@v4
