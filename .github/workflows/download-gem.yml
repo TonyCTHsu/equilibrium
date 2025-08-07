@@ -6,7 +6,7 @@ on:
     - download-packages
 
 jobs:
-  download:
+  download-via-gem:
     runs-on: ubuntu-latest
 
     permissions:
@@ -17,16 +17,47 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.2.8
+      - run: |
+          gem sources --clear-all --verbose
+          gem sources --list
 
       - name: Configure gem source for GitHub Packages
         run: |
           gem sources --add https://TonyCTHsu:${{ secrets.GITHUB_TOKEN }}@rubygems.pkg.github.com/TonyCTHsu
-          bundle config https://rubygems.pkg.github.com/TonyCTHsu ${{ secrets.GITHUB_TOKEN }}
-
-      - run: gem sources --list
+          gem sources --list
 
       - name: Download gem
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gem fetch equilibrium --source https://rubygems.pkg.github.com/TonyCTHsu --verbose
+
+  download-via-bundler:
+    runs-on: ubuntu-latest
+
+    permissions:
+      packages: read
+
+    steps:
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2.8
+      - name: Configure bundler for GitHub Packages
+        run: |
+          bundle config https://rubygems.pkg.github.com/TonyCTHsu ${{ secrets.GITHUB_TOKEN }}
+          bundle config list
+
+      - name: Create temporary Gemfile
+        run: |
+          cat > Gemfile << 'EOF'
+          source 'https://rubygems.org'
+          source 'https://rubygems.pkg.github.com/TonyCTHsu' do
+            gem 'equilibrium'
+          end
+          EOF
+
+      - name: Download gem via bundler
+        run: |
+          bundle install --verbose
+          bundle show equilibrium
