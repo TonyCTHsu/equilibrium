@@ -1,0 +1,30 @@
+name: Download Gem from GitHub Packages
+
+on:
+  push:
+    branches:
+    - download-packages
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+
+    permissions:
+      packages: read
+
+    steps:
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.2.8
+
+      - name: Configure gem source for GitHub Packages
+        run: |
+          gem sources --add https://rubygems.pkg.github.com/TonyCTHsu
+          bundle config https://rubygems.pkg.github.com/TonyCTHsu ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download gem
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gem fetch equilibrium --source https://rubygems.pkg.github.com/TonyCTHsu --verbose
