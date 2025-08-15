@@ -4,10 +4,6 @@ module Equilibrium
   class TagSorter
     # Sort tags in descending version order: latest first, then major versions (descending), then minor versions (descending)
     def self.sort_descending(tags_hash)
-      new.sort_descending(tags_hash)
-    end
-
-    def sort_descending(tags_hash)
       return {} if tags_hash.nil? || tags_hash.empty?
 
       sorted = {}
@@ -40,13 +36,11 @@ module Equilibrium
       sorted
     end
 
-    private
-
-    def major_version?(tag)
+    private_class_method def self.major_version?(tag)
       tag.match?(/^[0-9]+$/)
     end
 
-    def minor_version?(tag)
+    def self.minor_version?(tag)
       tag.match?(/^[0-9]+\.[0-9]+$/)
     end
   end

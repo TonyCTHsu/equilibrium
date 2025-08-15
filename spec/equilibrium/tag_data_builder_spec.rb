@@ -66,35 +66,4 @@ RSpec.describe Equilibrium::TagDataBuilder do
       expect(result["canonical_versions"]).to eq({})
     end
   end
-
-  describe ".extract_repository_name" do
-    it "extracts repository name from full URL" do
-      test_cases = {
-        "gcr.io/project-id/repository-name" => "repository-name",
-        "registry.example.com/namespace/repo" => "repo",
-        "my-registry.com/org/team/service" => "service",
-        "docker.io/library/nginx" => "nginx"
-      }
-
-      test_cases.each do |url, expected_name|
-        result = described_class.extract_repository_name(url)
-        expect(result).to eq(expected_name)
-      end
-    end
-
-    it "handles single component names" do
-      result = described_class.extract_repository_name("nginx")
-      expect(result).to eq("nginx")
-    end
-
-    it "handles URLs with trailing slashes" do
-      result = described_class.extract_repository_name("gcr.io/project/repo/")
-      expect(result).to eq("repo")
-    end
-
-    it "handles complex nested paths" do
-      result = described_class.extract_repository_name("registry.com/org/team/subteam/service")
-      expect(result).to eq("service")
-    end
-  end
 end

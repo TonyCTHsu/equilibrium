@@ -2,6 +2,7 @@
 
 require "json"
 require "thor"
+require_relative "../schema_validator"
 
 module Equilibrium
   module Mixins
@@ -15,6 +16,8 @@ module Equilibrium
         raise  # Let Thor::Error bubble up for validation errors
       rescue RegistryClient::Error => e
         raise StandardError, e.message  # Convert for test compatibility
+      rescue SchemaValidator::ValidationError => e
+        error_and_exit(e.message)
       rescue JSON::ParserError => e
         error_and_exit("Invalid JSON input: #{e.message}")
       rescue => e

@@ -170,23 +170,23 @@ RSpec.describe Equilibrium::TagSorter do
   describe "private methods" do
     describe "#major_version?" do
       it "identifies major version patterns" do
-        expect(sorter.send(:major_version?, "0")).to be true
-        expect(sorter.send(:major_version?, "1")).to be true
-        expect(sorter.send(:major_version?, "42")).to be true
-        expect(sorter.send(:major_version?, "latest")).to be false
-        expect(sorter.send(:major_version?, "1.0")).to be false
-        expect(sorter.send(:major_version?, "v1")).to be false
+        expect(described_class.send(:major_version?, "0")).to be true
+        expect(described_class.send(:major_version?, "1")).to be true
+        expect(described_class.send(:major_version?, "42")).to be true
+        expect(described_class.send(:major_version?, "latest")).to be false
+        expect(described_class.send(:major_version?, "1.0")).to be false
+        expect(described_class.send(:major_version?, "v1")).to be false
       end
     end
 
     describe "#minor_version?" do
       it "identifies minor version patterns" do
-        expect(sorter.send(:minor_version?, "0.1")).to be true
-        expect(sorter.send(:minor_version?, "1.0")).to be true
-        expect(sorter.send(:minor_version?, "42.13")).to be true
-        expect(sorter.send(:minor_version?, "latest")).to be false
-        expect(sorter.send(:minor_version?, "1")).to be false
-        expect(sorter.send(:minor_version?, "1.0.1")).to be false
+        expect(described_class.send(:minor_version?, "0.1")).to be true
+        expect(described_class.send(:minor_version?, "1.0")).to be true
+        expect(described_class.send(:minor_version?, "42.13")).to be true
+        expect(described_class.send(:minor_version?, "latest")).to be false
+        expect(described_class.send(:minor_version?, "1")).to be false
+        expect(described_class.send(:minor_version?, "1.0.1")).to be false
       end
     end
   end

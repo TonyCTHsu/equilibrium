@@ -5,8 +5,6 @@ require "digest"
 require_relative "../../lib/equilibrium/tag_processor"
 
 RSpec.describe Equilibrium::TagProcessor do
-  let(:processor) { described_class.new }
-
   # Generate consistent SHA256 digests for test data
   let(:latest_digest) { "sha256:#{Digest::SHA256.hexdigest("latest-1.2.3")}" }
   let(:v123_digest) { "sha256:#{Digest::SHA256.hexdigest("1.2.3")}" }
@@ -42,14 +40,14 @@ RSpec.describe Equilibrium::TagProcessor do
 
   describe "#filter_semantic_tags" do
     it "returns only semantic version tags" do
-      result = processor.filter_semantic_tags(sample_tags)
+      result = described_class.filter_semantic_tags(sample_tags)
 
       expected_tags = %w[1.2.3 1.2.2 1.2.1 1.1.0 1.0.0 0.9.0 0.8.1]
       expect(result.keys).to match_array(expected_tags)
     end
 
     it "excludes non-semantic tags" do
-      result = processor.filter_semantic_tags(sample_tags)
+      result = described_class.filter_semantic_tags(sample_tags)
 
       excluded_tags = %w[latest v1.2.3 main dev 1 1.2]
       excluded_tags.each do |tag|
@@ -58,14 +56,14 @@ RSpec.describe Equilibrium::TagProcessor do
     end
 
     it "preserves digests for semantic tags" do
-      result = processor.filter_semantic_tags(sample_tags)
+      result = described_class.filter_semantic_tags(sample_tags)
 
       expect(result["1.2.3"]).to eq(v123_digest)
       expect(result["0.9.0"]).to eq(v090_digest)
     end
 
     it "handles empty input" do
-      result = processor.filter_semantic_tags({})
+      result = described_class.filter_semantic_tags({})
       expect(result).to be_empty
     end
 
@@ -77,7 +75,7 @@ RSpec.describe Equilibrium::TagProcessor do
         "1.0.0" => "sha256:#{Digest::SHA256.hexdigest("1.0.0-release")}"
       }
 
-      result = processor.filter_semantic_tags(tags_with_prerelease)
+      result = described_class.filter_semantic_tags(tags_with_prerelease)
 
       # Should only include pure semantic versions
       expect(result.keys).to eq(["1.0.0"])
@@ -87,7 +85,7 @@ RSpec.describe Equilibrium::TagProcessor do
 
   describe "#filter_mutable_tags" do
     it "returns only mutable tags" do
-      result = processor.filter_mutable_tags(sample_tags)
+      result = described_class.filter_mutable_tags(sample_tags)
 
       expected_patterns = /^(latest|\d+|\d+\.\d+)$/
       result.keys.each do |tag|
@@ -96,22 +94,22 @@ RSpec.describe Equilibrium::TagProcessor do
     end
 
     it "includes latest tag" do
-      result = processor.filter_mutable_tags(sample_tags)
+      result = described_class.filter_mutable_tags(sample_tags)
       expect(result).to have_key("latest")
     end
 
     it "includes major version tags" do
-      result = processor.filter_mutable_tags(sample_tags)
+      result = described_class.filter_mutable_tags(sample_tags)
       expect(result).to have_key("1")
     end
 
     it "includes minor version tags" do
-      result = processor.filter_mutable_tags(sample_tags)
+      result = described_class.filter_mutable_tags(sample_tags)
       expect(result).to have_key("1.2")
     end
 
     it "excludes semantic version tags" do
-      result = processor.filter_mutable_tags(sample_tags)
+      result = described_class.filter_mutable_tags(sample_tags)
 
       semantic_tags = %w[1.2.3 1.2.2 1.1.0 0.9.0]
       semantic_tags.each do |tag|
@@ -120,7 +118,7 @@ RSpec.describe Equilibrium::TagProcessor do
     end
 
     it "excludes branch and v-prefixed tags" do
-      result = processor.filter_mutable_tags(sample_tags)
+      result = described_class.filter_mutable_tags(sample_tags)
 
       excluded_tags = %w[v1.2.3 main dev]
       excluded_tags.each do |tag|
@@ -143,13 +141,13 @@ RSpec.describe Equilibrium::TagProcessor do
     end
 
     it "computes latest tag correctly" do
-      result = processor.compute_virtual_tags(semantic_tags)
+      result = described_class.compute_virtual_tags(semantic_tags)
       expect(result["digests"]["latest"]).to eq(v123_digest) # 1.2.3
       expect(result["canonical_versions"]["latest"]).to eq("1.2.3")
     end
 
     it "computes major version tags correctly" do
-      result = processor.compute_virtual_tags(semantic_tags)
+      result = described_class.compute_virtual_tags(semantic_tags)
 
       expect(result["digests"]["1"]).to eq(v123_digest) # Latest 1.x.x (1.2.3)
       expect(result["digests"]["0"]).to eq(v090_digest) # Latest 0.x.x (0.9.0)
@@ -158,7 +156,7 @@ RSpec.describe Equilibrium::TagProcessor do
     end
 
     it "computes minor version tags correctly" do
-      result = processor.compute_virtual_tags(semantic_tags)
+      result = described_class.compute_virtual_tags(semantic_tags)
 
       expect(result["digests"]["1.2"]).to eq(v123_digest) # Latest 1.2.x (1.2.3)
       expect(result["digests"]["1.1"]).to eq(v110_digest) # Latest 1.1.x (1.1.0)
@@ -175,7 +173,7 @@ RSpec.describe Equilibrium::TagProcessor do
     it "handles single version correctly" do
       single_digest = "sha256:#{Digest::SHA256.hexdigest("2.0.0-single")}"
       single_version = {"2.0.0" => single_digest}
-      result = processor.compute_virtual_tags(single_version)
+      result = described_class.compute_virtual_tags(single_version)
 
       expect(result["digests"]["latest"]).to eq(single_digest)
       expect(result["digests"]["2"]).to eq(single_digest)
@@ -191,7 +189,7 @@ RSpec.describe Equilibrium::TagProcessor do
         "1.0.3" => "sha256:#{Digest::SHA256.hexdigest("1.0.3")}",
         "1.0.0" => "sha256:#{Digest::SHA256.hexdigest("1.0.0")}"
       }
-      result = processor.compute_virtual_tags(patch_versions)
+      result = described_class.compute_virtual_tags(patch_versions)
 
       patch5_digest = "sha256:#{Digest::SHA256.hexdigest("1.0.5")}"
       expect(result["digests"]["1.0"]).to eq(patch5_digest) # Latest 1.0.x
@@ -203,14 +201,14 @@ RSpec.describe Equilibrium::TagProcessor do
     end
 
     it "is idempotent" do
-      result1 = processor.compute_virtual_tags(semantic_tags)
-      result2 = processor.compute_virtual_tags(semantic_tags)
+      result1 = described_class.compute_virtual_tags(semantic_tags)
+      result2 = described_class.compute_virtual_tags(semantic_tags)
 
       expect(result1).to eq(result2)
     end
 
     it "handles empty input" do
-      result = processor.compute_virtual_tags({})
+      result = described_class.compute_virtual_tags({})
       expect(result["digests"]).to be_empty
       expect(result["canonical_versions"]).to be_empty
     end
@@ -228,7 +226,7 @@ RSpec.describe Equilibrium::TagProcessor do
         "0.9.0" => minor_digest
       }
 
-      result = processor.compute_virtual_tags(unsorted_versions)
+      result = described_class.compute_virtual_tags(unsorted_versions)
 
       # Latest should be the highest version
       expect(result["digests"]["latest"]).to eq(newest_digest) # 1.2.3
@@ -250,7 +248,7 @@ RSpec.describe Equilibrium::TagProcessor do
         "0.1.5" => zero15_digest
       }
 
-      result = processor.compute_virtual_tags(zero_major)
+      result = described_class.compute_virtual_tags(zero_major)
 
       expect(result["digests"]["latest"]).to eq(zero2_digest) # 0.2.0
       expect(result["digests"]["0"]).to eq(zero2_digest)      # 0.2.0
@@ -266,9 +264,9 @@ RSpec.describe Equilibrium::TagProcessor do
   describe "integration" do
     it "processes tags end-to-end correctly" do
       # Start with all tags
-      semantic_tags = processor.filter_semantic_tags(sample_tags)
-      virtual_tags = processor.compute_virtual_tags(semantic_tags)
-      mutable_tags = processor.filter_mutable_tags(sample_tags)
+      semantic_tags = described_class.filter_semantic_tags(sample_tags)
+      virtual_tags = described_class.compute_virtual_tags(semantic_tags)
+      mutable_tags = described_class.filter_mutable_tags(sample_tags)
 
       # Virtual tags should be computed from semantic versions
       expect(virtual_tags["digests"]["latest"]).to eq(v123_digest) # 1.2.3

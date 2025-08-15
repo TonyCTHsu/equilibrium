@@ -2,9 +2,6 @@
 
 require "json"
 require_relative "../schema_validator"
-require_relative "../schemas/expected_actual"
-require_relative "../schemas/catalog"
-require_relative "../schemas/analyzer_output"
 
 module Equilibrium
   module Mixins
@@ -20,41 +17,20 @@ module Equilibrium
         repository_url
       end
 
-      # Load and validate JSON file against expected/actual schema
+      # Load and validate JSON file against provided schema
       # @param file_path [String] Path to JSON file
+      # @param schema [Hash] JSON schema to validate against
+      # @param error_prefix [String] Prefix for validation error messages
       # @return [Hash] Validated JSON data
-      def load_and_validate_json_file(file_path)
+      def load_and_validate_json_file(file_path, schema, error_prefix: "Schema validation failed")
         unless File.exist?(file_path)
           raise "File not found: #{file_path}"
         end
 
         data = JSON.parse(File.read(file_path))
-        validate_expected_actual_schema(data)
+        SchemaValidator.validate!(data, schema, error_prefix: error_prefix)
         data
-      rescue JSON::ParserError => e
-        raise "Invalid JSON in #{file_path}: #{e.message}"
       end
-
-      # Schema validation methods
-      def validate_expected_actual_schema(data)
-        SchemaValidator.validate!(data, Equilibrium::Schemas::EXPECTED_ACTUAL, error_prefix: "Schema validation failed")
-      rescue SchemaValidator::ValidationError => e
-        error_and_exit(e.message)
-      end
-
-      def validate_catalog_schema(data)
-        SchemaValidator.validate!(data, Equilibrium::Schemas::CATALOG, error_prefix: "Catalog schema validation failed")
-      rescue SchemaValidator::ValidationError => e
-        error_and_exit(e.message)
-      end
-
-      def validate_analyzer_output_schema(data)
-        SchemaValidator.validate!(data, Equilibrium::Schemas::ANALYZER_OUTPUT, error_prefix: "Analyzer output schema validation failed")
-      rescue SchemaValidator::ValidationError => e
-        error_and_exit(e.message)
-      end
-
-      # Note: error_and_exit method is provided by ErrorHandling module
     end
   end
 end

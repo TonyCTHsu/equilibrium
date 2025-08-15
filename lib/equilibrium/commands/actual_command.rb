@@ -3,6 +3,8 @@
 require_relative "../mixins/error_handling"
 require_relative "../mixins/input_output"
 require_relative "../mixins/schema_validation"
+require_relative "../schema_validator"
+require_relative "../schemas/expected_actual"
 require_relative "../tags_operation_service"
 
 module Equilibrium
@@ -24,7 +26,7 @@ module Equilibrium
           output = TagsOperationService.generate_actual_output(full_repository_url)
 
           # Validate output against schema before writing
-          validate_expected_actual_schema(output)
+          SchemaValidator.validate!(output, Equilibrium::Schemas::EXPECTED_ACTUAL, error_prefix: "Schema validation failed")
 
           # Format and display output
           format_output(output, options[:format] || "summary", "actual")

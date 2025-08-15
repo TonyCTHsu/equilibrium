@@ -2,7 +2,8 @@
 
 require_relative "../mixins/error_handling"
 require_relative "../mixins/input_output"
-require_relative "../mixins/schema_validation"
+require_relative "../schema_validator"
+require_relative "../schemas/expected_actual"
 require_relative "../catalog_builder"
 
 module Equilibrium
@@ -22,7 +23,7 @@ module Equilibrium
 
           # Parse and validate JSON
           data = parse_json(input, "input")
-          validate_expected_actual_schema(data)
+          SchemaValidator.validate!(data, Equilibrium::Schemas::EXPECTED_ACTUAL, error_prefix: "Schema validation failed")
 
           # Convert to catalog format
           catalog = CatalogBuilder.build_catalog(data)

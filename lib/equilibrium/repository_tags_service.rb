@@ -13,11 +13,10 @@ module Equilibrium
     # @return [Hash] Expected tags with digests and canonical versions
     def self.generate_expected_tags(repository_url)
       registry_client = RegistryClient.new
-      tag_processor = TagProcessor.new
 
       all_tags = registry_client.list_tags(repository_url)
-      semantic_tags = tag_processor.filter_semantic_tags(all_tags)
-      tag_processor.compute_virtual_tags(semantic_tags)
+      semantic_tags = TagProcessor.filter_semantic_tags(all_tags)
+      TagProcessor.compute_virtual_tags(semantic_tags)
     end
 
     # Generate actual mutable tags with canonical version mapping
@@ -25,11 +24,10 @@ module Equilibrium
     # @return [Hash] Actual tags with digests and canonical versions
     def self.generate_actual_tags(repository_url)
       registry_client = RegistryClient.new
-      tag_processor = TagProcessor.new
 
       all_tags = registry_client.list_tags(repository_url)
-      mutable_tags = tag_processor.filter_mutable_tags(all_tags)
-      semantic_tags = tag_processor.filter_semantic_tags(all_tags)
+      mutable_tags = TagProcessor.filter_mutable_tags(all_tags)
+      semantic_tags = TagProcessor.filter_semantic_tags(all_tags)
 
       canonical_versions = CanonicalVersionMapper.map_to_canonical_versions(mutable_tags, semantic_tags)
 

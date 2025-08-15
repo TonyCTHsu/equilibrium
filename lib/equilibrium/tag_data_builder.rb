@@ -20,12 +20,5 @@ module Equilibrium
         "canonical_versions" => TagSorter.sort_descending(canonical_versions)
       }
     end
-
-    # Extract repository name from repository URL
-    # @param repository_url [String] Full repository URL
-    # @return [String] Repository name
-    def self.extract_repository_name(repository_url)
-      repository_url.split("/").last
-    end
   end
 end

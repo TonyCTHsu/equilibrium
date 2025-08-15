@@ -13,7 +13,7 @@ module Equilibrium
     # @return [Hash] Complete expected tags output with repository metadata
     def self.generate_expected_output(repository_url)
       tag_data = RepositoryTagsService.generate_expected_tags(repository_url)
-      repository_name = TagDataBuilder.extract_repository_name(repository_url)
+      repository_name = repository_url.split("/").last
 
       TagDataBuilder.build_output(
         repository_url,
@@ -28,7 +28,7 @@ module Equilibrium
     # @return [Hash] Complete actual tags output with repository metadata
     def self.generate_actual_output(repository_url)
       tag_data = RepositoryTagsService.generate_actual_tags(repository_url)
-      repository_name = TagDataBuilder.extract_repository_name(repository_url)
+      repository_name = repository_url.split("/").last
 
       TagDataBuilder.build_output(
         repository_url,
