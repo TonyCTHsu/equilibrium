@@ -203,7 +203,8 @@ RSpec.describe Equilibrium::Analyzer do
     end
 
     it "generates create_tag commands for missing tags" do
-      plan = described_class.send(:generate_remediation_plan, analysis_missing, repository_url, "test-image")
+      analyzer = described_class.new
+      plan = analyzer.send(:generate_remediation_plan, analysis_missing, repository_url, "test-image")
 
       expect(plan.size).to eq(2)
 
@@ -218,7 +219,8 @@ RSpec.describe Equilibrium::Analyzer do
     end
 
     it "generates update_tag commands for mismatched tags" do
-      plan = described_class.send(:generate_remediation_plan, analysis_mismatched, repository_url, "test-image")
+      analyzer = described_class.new
+      plan = analyzer.send(:generate_remediation_plan, analysis_mismatched, repository_url, "test-image")
 
       expect(plan.size).to eq(1)
 
@@ -231,7 +233,8 @@ RSpec.describe Equilibrium::Analyzer do
     end
 
     it "generates remove_tag commands for unexpected tags" do
-      plan = described_class.send(:generate_remediation_plan, analysis_extra, repository_url, "test-image")
+      analyzer = described_class.new
+      plan = analyzer.send(:generate_remediation_plan, analysis_extra, repository_url, "test-image")
 
       expect(plan.size).to eq(1)
 
@@ -244,7 +247,8 @@ RSpec.describe Equilibrium::Analyzer do
     end
 
     it "handles unknown repository URL" do
-      plan = described_class.send(:generate_remediation_plan, analysis_missing, "unknown", "test-image")
+      analyzer = described_class.new
+      plan = analyzer.send(:generate_remediation_plan, analysis_missing, "unknown", "test-image")
 
       expect(plan.size).to eq(2)
       plan.each do |command|
@@ -253,7 +257,8 @@ RSpec.describe Equilibrium::Analyzer do
     end
 
     it "handles missing repository URL" do
-      plan = described_class.send(:generate_remediation_plan, analysis_missing, nil, "test-image")
+      analyzer = described_class.new
+      plan = analyzer.send(:generate_remediation_plan, analysis_missing, nil, "test-image")
 
       expect(plan.size).to eq(2)
       plan.each do |command|
@@ -270,7 +275,8 @@ RSpec.describe Equilibrium::Analyzer do
       expected = {"latest" => perfect_digest, "1" => missing_digest}
       actual = {"latest" => perfect_digest, "1" => missing_digest}
 
-      status = described_class.send(:determine_status, expected, actual)
+      analyzer = described_class.new
+      status = analyzer.send(:determine_status, expected, actual)
       expect(status).to eq("perfect")
     end
 
@@ -278,7 +284,8 @@ RSpec.describe Equilibrium::Analyzer do
       expected = {"latest" => perfect_digest, "1" => missing_digest}
       actual = {"latest" => perfect_digest}
 
-      status = described_class.send(:determine_status, expected, actual)
+      analyzer = described_class.new
+      status = analyzer.send(:determine_status, expected, actual)
       expect(status).to eq("missing_tags")
     end
 
@@ -286,7 +293,8 @@ RSpec.describe Equilibrium::Analyzer do
       expected = {"latest" => perfect_digest}
       actual = {"latest" => perfect_digest, "dev" => extra_digest}
 
-      status = described_class.send(:determine_status, expected, actual)
+      analyzer = described_class.new
+      status = analyzer.send(:determine_status, expected, actual)
       expect(status).to eq("extra_tags")
     end
 
@@ -294,7 +302,8 @@ RSpec.describe Equilibrium::Analyzer do
       expected = {"latest" => perfect_digest, "1" => missing_digest}
       actual = {"latest" => different_digest, "1" => missing_digest}
 
-      status = described_class.send(:determine_status, expected, actual)
+      analyzer = described_class.new
+      status = analyzer.send(:determine_status, expected, actual)
       expect(status).to eq("mismatched")
     end
 
@@ -302,7 +311,8 @@ RSpec.describe Equilibrium::Analyzer do
       expected = {"latest" => perfect_digest, "1" => missing_digest}
       actual = {"latest" => wrong_digest, "dev" => extra_digest} # missing "1", extra "dev", wrong "latest"
 
-      status = described_class.send(:determine_status, expected, actual)
+      analyzer = described_class.new
+      status = analyzer.send(:determine_status, expected, actual)
       expect(status).to eq("mismatched")
     end
   end

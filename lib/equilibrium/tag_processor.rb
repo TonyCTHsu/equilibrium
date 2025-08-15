@@ -6,6 +6,18 @@ require_relative "semantic_version"
 module Equilibrium
   class TagProcessor
     def self.compute_virtual_tags(semantic_tags)
+      new.compute_virtual_tags(semantic_tags)
+    end
+
+    def self.filter_semantic_tags(all_tags)
+      new.filter_semantic_tags(all_tags)
+    end
+
+    def self.filter_mutable_tags(all_tags)
+      new.filter_mutable_tags(all_tags)
+    end
+
+    def compute_virtual_tags(semantic_tags)
       return {"digests" => {}, "canonical_versions" => {}} if semantic_tags.empty?
 
       latest_version = nil
@@ -52,21 +64,23 @@ module Equilibrium
       {"digests" => digests, "canonical_versions" => canonical_versions}
     end
 
-    def self.filter_semantic_tags(all_tags)
+    def filter_semantic_tags(all_tags)
       # Filter semantic tags (canonical_tags.json): exact major.minor.patch format
       all_tags.select { |tag, _| semantic_version?(tag) }
     end
 
-    def self.filter_mutable_tags(all_tags)
+    def filter_mutable_tags(all_tags)
       # Filter mutable tags (actual_tags.json): latest, digits, or major.minor format
       all_tags.select { |tag, _| mutable_tag?(tag) }
     end
 
-    private_class_method def self.semantic_version?(tag)
+    private
+
+    def semantic_version?(tag)
       SemanticVersion.valid?(tag)
     end
 
-    private_class_method def self.mutable_tag?(tag)
+    def mutable_tag?(tag)
       tag.match?(/^latest$/) ||
         tag.match?(/^[0-9]+$/) ||
         tag.match?(/^[0-9]+\.[0-9]+$/)
