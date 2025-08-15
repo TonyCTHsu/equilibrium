@@ -26,7 +26,6 @@ jobs:
   changelog:
     runs-on: ubuntu-latest
     name: Validate Changelog
-    if: startsWith(github.ref_name, 'release')
     steps:
     - uses: actions/checkout@v4
 

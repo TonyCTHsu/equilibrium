@@ -7,21 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.1] - 2025-08-06
+## [0.2.0] - 2025-08-15
 
 ### Added
-- GitHub Packages publishing support in release workflow
-- Draft mode for GitHub releases requiring manual review
-- Enhanced release automation with artifact attachment
+- Add `uncatalog` command for reverse catalog conversion
+
+### Changed
+- Catalog schema includes `repository_url` and `repository_name` at root level
+
+### Fixed
+- Fix changelog reference links
+
+## [0.1.1] - 2025-08-06
 
 ### Fixed
 - Preserve descending tag order in summary format output
 - Consistent descending ordering for expected and actual outputs
-
-### Changed
-- Reorganized spec files to mirror lib directory structure
-- Extracted TagSorter utility with comprehensive unit tests
-- Enhanced RegistryClient with pagination analysis capabilities
 
 ## [0.1.0] - 2025-08-05
 
@@ -53,5 +54,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Detailed architecture overview and data flow diagrams
 - Complete command reference and examples
 
+[0.2.0]: https://github.com/TonyCTHsu/equilibrium/releases/tag/v0.2.0
 [0.1.1]: https://github.com/TonyCTHsu/equilibrium/releases/tag/v0.1.1
 [0.1.0]: https://github.com/TonyCTHsu/equilibrium/releases/tag/v0.1.0
