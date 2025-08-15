@@ -4,9 +4,7 @@ require_relative "../spec_helper"
 require_relative "../../lib/equilibrium/tag_data_builder"
 
 RSpec.describe Equilibrium::TagDataBuilder do
-  let(:builder) { described_class.new }
-
-  describe "#build_output" do
+  describe ".build_output" do
     let(:repository_url) { "gcr.io/test-project/test-image" }
     let(:repository_name) { "test-image" }
     let(:digests) do
@@ -25,7 +23,7 @@ RSpec.describe Equilibrium::TagDataBuilder do
     end
 
     it "builds correct output structure" do
-      result = builder.build_output(repository_url, repository_name, digests, canonical_versions)
+      result = described_class.build_output(repository_url, repository_name, digests, canonical_versions)
 
       expect(result).to have_key("repository_url")
       expect(result).to have_key("repository_name")
@@ -37,7 +35,7 @@ RSpec.describe Equilibrium::TagDataBuilder do
     end
 
     it "includes sorted digests and canonical versions" do
-      result = builder.build_output(repository_url, repository_name, digests, canonical_versions)
+      result = described_class.build_output(repository_url, repository_name, digests, canonical_versions)
 
       # TagSorter should sort in descending order
       digest_keys = result["digests"].keys
@@ -48,7 +46,7 @@ RSpec.describe Equilibrium::TagDataBuilder do
     end
 
     it "preserves all tag data" do
-      result = builder.build_output(repository_url, repository_name, digests, canonical_versions)
+      result = described_class.build_output(repository_url, repository_name, digests, canonical_versions)
 
       # Should contain all original tags
       expect(result["digests"]).to include("latest", "1", "1.2")
@@ -60,7 +58,7 @@ RSpec.describe Equilibrium::TagDataBuilder do
     end
 
     it "handles empty input gracefully" do
-      result = builder.build_output(repository_url, repository_name, {}, {})
+      result = described_class.build_output(repository_url, repository_name, {}, {})
 
       expect(result["repository_url"]).to eq(repository_url)
       expect(result["repository_name"]).to eq(repository_name)
@@ -69,7 +67,7 @@ RSpec.describe Equilibrium::TagDataBuilder do
     end
   end
 
-  describe "#extract_repository_name" do
+  describe ".extract_repository_name" do
     it "extracts repository name from full URL" do
       test_cases = {
         "gcr.io/project-id/repository-name" => "repository-name",
@@ -79,23 +77,23 @@ RSpec.describe Equilibrium::TagDataBuilder do
       }
 
       test_cases.each do |url, expected_name|
-        result = builder.extract_repository_name(url)
+        result = described_class.extract_repository_name(url)
         expect(result).to eq(expected_name)
       end
     end
 
     it "handles single component names" do
-      result = builder.extract_repository_name("nginx")
+      result = described_class.extract_repository_name("nginx")
       expect(result).to eq("nginx")
     end
 
     it "handles URLs with trailing slashes" do
-      result = builder.extract_repository_name("gcr.io/project/repo/")
+      result = described_class.extract_repository_name("gcr.io/project/repo/")
       expect(result).to eq("repo")
     end
 
     it "handles complex nested paths" do
-      result = builder.extract_repository_name("registry.com/org/team/subteam/service")
+      result = described_class.extract_repository_name("registry.com/org/team/subteam/service")
       expect(result).to eq("service")
     end
   end

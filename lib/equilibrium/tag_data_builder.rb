@@ -12,7 +12,7 @@ module Equilibrium
     # @param digests [Hash] Tag to digest mappings
     # @param canonical_versions [Hash] Tag to canonical version mappings
     # @return [Hash] Standardized output structure
-    def build_output(repository_url, repository_name, digests, canonical_versions)
+    def self.build_output(repository_url, repository_name, digests, canonical_versions)
       {
         "repository_url" => repository_url,
         "repository_name" => repository_name,
@@ -24,7 +24,7 @@ module Equilibrium
     # Extract repository name from repository URL
     # @param repository_url [String] Full repository URL
     # @return [String] Repository name
-    def extract_repository_name(repository_url)
+    def self.extract_repository_name(repository_url)
       repository_url.split("/").last
     end
   end

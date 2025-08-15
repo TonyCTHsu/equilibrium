@@ -1,12 +1,18 @@
 # frozen_string_literal: true
 
-require_relative "../command_base"
+require_relative "../mixins/error_handling"
+require_relative "../mixins/input_output"
+require_relative "../mixins/schema_validation"
 require_relative "../tags_operation_service"
 
 module Equilibrium
   module Commands
     # Command for generating expected mutable tags based on semantic versions
-    class ExpectedCommand < CommandBase
+    class ExpectedCommand
+      include Mixins::ErrorHandling
+      include Mixins::InputOutput
+      include Mixins::SchemaValidation
+
       # Execute the expected command
       # @param registry [String] Repository URL
       # @param options [Hash] Command options (format, etc.)
@@ -15,8 +21,7 @@ module Equilibrium
           full_repository_url = validate_repository_url(registry)
 
           # Generate complete expected output using high-level service
-          service = TagsOperationService.new
-          output = service.generate_expected_output(full_repository_url)
+          output = TagsOperationService.generate_expected_output(full_repository_url)
 
           # Validate output against schema before writing
           validate_expected_actual_schema(output)

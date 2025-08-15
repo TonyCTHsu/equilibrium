@@ -5,7 +5,6 @@ require "digest"
 require_relative "../../lib/equilibrium/analyzer"
 
 RSpec.describe Equilibrium::Analyzer do
-  let(:analyzer) { described_class.new }
   let(:repository_url) { "gcr.io/test-project/test-image" }
 
   # Generate consistent SHA256 digests for test data
@@ -53,7 +52,7 @@ RSpec.describe Equilibrium::Analyzer do
 
   describe "#analyze" do
     it "analyzes perfect equilibrium" do
-      result = analyzer.analyze(perfect_expected_data, perfect_actual_data)
+      result = described_class.analyze(perfect_expected_data, perfect_actual_data)
 
       expect(result[:status]).to eq("perfect")
       expect(result[:repository_url]).to eq(repository_url)
@@ -78,7 +77,7 @@ RSpec.describe Equilibrium::Analyzer do
         }
       }
 
-      result = analyzer.analyze(perfect_expected_data, actual_missing)
+      result = described_class.analyze(perfect_expected_data, actual_missing)
 
       expect(result[:status]).to eq("missing_tags")
       expect(result[:missing_tags]).to have_key("1")
@@ -105,7 +104,7 @@ RSpec.describe Equilibrium::Analyzer do
         }
       }
 
-      result = analyzer.analyze(perfect_expected_data, actual_extra)
+      result = described_class.analyze(perfect_expected_data, actual_extra)
 
       expect(result[:status]).to eq("extra_tags")
       expect(result[:unexpected_tags]).to have_key("dev")
@@ -130,7 +129,7 @@ RSpec.describe Equilibrium::Analyzer do
         }
       }
 
-      result = analyzer.analyze(perfect_expected_data, actual_mismatched)
+      result = described_class.analyze(perfect_expected_data, actual_mismatched)
 
       expect(result[:status]).to eq("mismatched")
       expect(result[:mismatched_tags]).to have_key("1")
@@ -157,7 +156,7 @@ RSpec.describe Equilibrium::Analyzer do
         }
       }
 
-      result = analyzer.analyze(perfect_expected_data, actual_complex)
+      result = described_class.analyze(perfect_expected_data, actual_complex)
 
       expect(result[:status]).to eq("mismatched") # Prioritizes mismatched over missing
       expect(result[:missing_tags]).to have_key("1.2")
@@ -171,7 +170,7 @@ RSpec.describe Equilibrium::Analyzer do
       mismatched_actual_data["repository_url"] = "gcr.io/different/repo"
 
       expect {
-        analyzer.analyze(perfect_expected_data, mismatched_actual_data)
+        described_class.analyze(perfect_expected_data, mismatched_actual_data)
       }.to raise_error(ArgumentError, /Repository URLs do not match/)
     end
   end
@@ -204,7 +203,7 @@ RSpec.describe Equilibrium::Analyzer do
     end
 
     it "generates create_tag commands for missing tags" do
-      plan = analyzer.send(:generate_remediation_plan, analysis_missing, repository_url)
+      plan = described_class.send(:generate_remediation_plan, analysis_missing, repository_url)
 
       expect(plan.size).to eq(2)
 
@@ -219,7 +218,7 @@ RSpec.describe Equilibrium::Analyzer do
     end
 
     it "generates update_tag commands for mismatched tags" do
-      plan = analyzer.send(:generate_remediation_plan, analysis_mismatched, repository_url)
+      plan = described_class.send(:generate_remediation_plan, analysis_mismatched, repository_url)
 
       expect(plan.size).to eq(1)
 
@@ -232,7 +231,7 @@ RSpec.describe Equilibrium::Analyzer do
     end
 
     it "generates remove_tag commands for unexpected tags" do
-      plan = analyzer.send(:generate_remediation_plan, analysis_extra, repository_url)
+      plan = described_class.send(:generate_remediation_plan, analysis_extra, repository_url)
 
       expect(plan.size).to eq(1)
 
@@ -245,7 +244,7 @@ RSpec.describe Equilibrium::Analyzer do
     end
 
     it "handles unknown repository URL" do
-      plan = analyzer.send(:generate_remediation_plan, analysis_missing, "unknown")
+      plan = described_class.send(:generate_remediation_plan, analysis_missing, "unknown")
 
       expect(plan.size).to eq(2)
       plan.each do |command|
@@ -259,7 +258,7 @@ RSpec.describe Equilibrium::Analyzer do
       expected = {"latest" => perfect_digest, "1" => missing_digest}
       actual = {"latest" => perfect_digest, "1" => missing_digest}
 
-      status = analyzer.send(:determine_status, expected, actual)
+      status = described_class.send(:determine_status, expected, actual)
       expect(status).to eq("perfect")
     end
 
@@ -267,7 +266,7 @@ RSpec.describe Equilibrium::Analyzer do
       expected = {"latest" => perfect_digest, "1" => missing_digest}
       actual = {"latest" => perfect_digest}
 
-      status = analyzer.send(:determine_status, expected, actual)
+      status = described_class.send(:determine_status, expected, actual)
       expect(status).to eq("missing_tags")
     end
 
@@ -275,7 +274,7 @@ RSpec.describe Equilibrium::Analyzer do
       expected = {"latest" => perfect_digest}
       actual = {"latest" => perfect_digest, "dev" => extra_digest}
 
-      status = analyzer.send(:determine_status, expected, actual)
+      status = described_class.send(:determine_status, expected, actual)
       expect(status).to eq("extra_tags")
     end
 
@@ -283,7 +282,7 @@ RSpec.describe Equilibrium::Analyzer do
       expected = {"latest" => perfect_digest, "1" => missing_digest}
       actual = {"latest" => different_digest, "1" => missing_digest}
 
-      status = analyzer.send(:determine_status, expected, actual)
+      status = described_class.send(:determine_status, expected, actual)
       expect(status).to eq("mismatched")
     end
 
@@ -291,7 +290,7 @@ RSpec.describe Equilibrium::Analyzer do
       expected = {"latest" => perfect_digest, "1" => missing_digest}
       actual = {"latest" => wrong_digest, "dev" => extra_digest} # missing "1", extra "dev", wrong "latest"
 
-      status = analyzer.send(:determine_status, expected, actual)
+      status = described_class.send(:determine_status, expected, actual)
       expect(status).to eq("mismatched")
     end
   end

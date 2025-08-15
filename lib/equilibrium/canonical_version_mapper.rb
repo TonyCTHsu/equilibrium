@@ -8,7 +8,7 @@ module Equilibrium
     # @param mutable_tags [Hash] Hash of tag => digest mappings
     # @param semantic_tags [Hash] Hash of semantic_version => digest mappings
     # @return [Hash] Hash of tag => canonical_version mappings
-    def map_to_canonical_versions(mutable_tags, semantic_tags)
+    def self.map_to_canonical_versions(mutable_tags, semantic_tags)
       canonical_versions = {}
 
       mutable_tags.each do |mutable_tag, digest|

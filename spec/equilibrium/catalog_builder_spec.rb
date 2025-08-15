@@ -5,8 +5,6 @@ require_relative "../../lib/equilibrium/schemas/catalog"
 require_relative "../../lib/equilibrium/catalog_builder"
 
 RSpec.describe Equilibrium::CatalogBuilder do
-  let(:builder) { described_class.new }
-
   let(:sample_data) do
     {
       "repository_url" => "gcr.io/test-project/test-image",
@@ -31,9 +29,9 @@ RSpec.describe Equilibrium::CatalogBuilder do
   # Legacy format for backward compatibility tests
   let(:sample_virtual_tags) { sample_data["digests"] }
 
-  describe "#build_catalog" do
+  describe ".build_catalog" do
     it "builds catalog with correct structure" do
-      catalog = builder.build_catalog(sample_data)
+      catalog = described_class.build_catalog(sample_data)
 
       expect(catalog).to have_key("images")
       expect(catalog["images"]).to be_an(Array)
@@ -41,7 +39,7 @@ RSpec.describe Equilibrium::CatalogBuilder do
     end
 
     it "creates correct image entries" do
-      catalog = builder.build_catalog(sample_data)
+      catalog = described_class.build_catalog(sample_data)
 
       first_image = catalog["images"].first
       expect(first_image).to have_key("name")
@@ -54,14 +52,14 @@ RSpec.describe Equilibrium::CatalogBuilder do
     end
 
     it "includes all virtual tags" do
-      catalog = builder.build_catalog(sample_data)
+      catalog = described_class.build_catalog(sample_data)
 
       tags = catalog["images"].map { |img| img["tag"] }
       expect(tags).to match_array(sample_virtual_tags.keys)
     end
 
     it "maps tags to correct digests" do
-      catalog = builder.build_catalog(sample_data)
+      catalog = described_class.build_catalog(sample_data)
 
       latest_entry = catalog["images"].find { |img| img["tag"] == "latest" }
       expect(latest_entry["digest"]).to eq(sample_virtual_tags["latest"])
@@ -71,7 +69,7 @@ RSpec.describe Equilibrium::CatalogBuilder do
     end
 
     it "validates against catalog schema" do
-      catalog = builder.build_catalog(sample_data)
+      catalog = described_class.build_catalog(sample_data)
 
       errors = Equilibrium::SchemaValidator.validate(catalog, Equilibrium::Schemas::CATALOG)
 
@@ -173,7 +171,7 @@ RSpec.describe Equilibrium::CatalogBuilder do
     end
   end
 
-  describe "#reverse_catalog" do
+  describe ".reverse_catalog" do
     let(:sample_catalog) do
       {
         "images" => [
@@ -200,7 +198,7 @@ RSpec.describe Equilibrium::CatalogBuilder do
     end
 
     it "converts catalog back to expected/actual format" do
-      result = builder.reverse_catalog(sample_catalog)
+      result = described_class.reverse_catalog(sample_catalog)
 
       expect(result).to have_key("repository_name")
       expect(result).to have_key("digests")
@@ -212,7 +210,7 @@ RSpec.describe Equilibrium::CatalogBuilder do
     end
 
     it "correctly maps tags to digests and canonical versions" do
-      result = builder.reverse_catalog(sample_catalog)
+      result = described_class.reverse_catalog(sample_catalog)
 
       expect(result["digests"]["latest"]).to eq("sha256:abc123def456789012345678901234567890123456789012345678901234abcd")
       expect(result["digests"]["1"]).to eq("sha256:abc123def456789012345678901234567890123456789012345678901234abcd")
@@ -225,7 +223,7 @@ RSpec.describe Equilibrium::CatalogBuilder do
 
     it "handles empty images array" do
       empty_catalog = {"images" => []}
-      result = builder.reverse_catalog(empty_catalog)
+      result = described_class.reverse_catalog(empty_catalog)
 
       expect(result["repository_name"]).to eq("")
       expect(result["digests"]).to eq({})
@@ -237,8 +235,8 @@ RSpec.describe Equilibrium::CatalogBuilder do
       original_data = sample_data.dup
 
       # Convert to catalog and back
-      catalog = builder.build_catalog(original_data)
-      result = builder.reverse_catalog(catalog)
+      catalog = described_class.build_catalog(original_data)
+      result = described_class.reverse_catalog(catalog)
 
       # Compare essential data (excluding repository_url which isn't preserved)
       expect(result["repository_name"]).to eq(original_data["repository_name"])
@@ -267,7 +265,7 @@ RSpec.describe Equilibrium::CatalogBuilder do
         }
       }
 
-      catalog = builder.build_catalog(realistic_data)
+      catalog = described_class.build_catalog(realistic_data)
 
       # Validate structure
       expect(catalog["images"].size).to eq(4)
@@ -301,8 +299,8 @@ RSpec.describe Equilibrium::CatalogBuilder do
       }
 
       # Forward and reverse conversion
-      catalog = builder.build_catalog(realistic_data)
-      result = builder.reverse_catalog(catalog)
+      catalog = described_class.build_catalog(realistic_data)
+      result = described_class.reverse_catalog(catalog)
 
       # Verify essential data is preserved
       expect(result["repository_name"]).to eq("apm-inject")

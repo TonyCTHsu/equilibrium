@@ -7,7 +7,7 @@ module Equilibrium
     # Command for displaying version information
     class VersionCommand
       # Execute the version command
-      def execute
+      def self.execute
         puts "Equilibrium v#{Equilibrium::VERSION}"
         puts "Container tag validation tool"
       end

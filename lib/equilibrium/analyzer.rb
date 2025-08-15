@@ -4,11 +4,8 @@ require "json"
 
 module Equilibrium
   class Analyzer
-    def initialize
-    end
-
     # Analyzes validated expected/actual data in schema format
-    def analyze(expected_data, actual_data)
+    def self.analyze(expected_data, actual_data)
       # Extract digests from validated schema format
       expected_tags = expected_data["digests"]
       actual_tags = actual_data["digests"]
@@ -38,9 +35,7 @@ module Equilibrium
       analysis
     end
 
-    private
-
-    def generate_remediation_plan(analysis, repository_url)
+    private_class_method def self.generate_remediation_plan(analysis, repository_url)
       plan = []
 
       analysis[:missing_tags].each do |tag, digest|
@@ -74,17 +69,15 @@ module Equilibrium
       plan
     end
 
-    private
-
-    def find_missing_tags(expected, actual)
+    private_class_method def self.find_missing_tags(expected, actual)
       expected.reject { |tag, digest| actual.key?(tag) }
     end
 
-    def find_unexpected_tags(expected, actual)
+    def self.find_unexpected_tags(expected, actual)
       actual.reject { |tag, _| expected.key?(tag) }
     end
 
-    def find_mismatched_tags(expected, actual)
+    def self.find_mismatched_tags(expected, actual)
       mismatched = {}
       expected.each do |tag, expected_digest|
         if actual.key?(tag) && actual[tag] != expected_digest
@@ -97,7 +90,7 @@ module Equilibrium
       mismatched
     end
 
-    def determine_status(expected, actual)
+    def self.determine_status(expected, actual)
       return "perfect" if expected == actual
       return "mismatched" if find_mismatched_tags(expected, actual).any?
       return "missing_tags" if find_missing_tags(expected, actual).any?

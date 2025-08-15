@@ -6,7 +6,7 @@ module Equilibrium
   class CatalogBuilder
     class Error < StandardError; end
 
-    def build_catalog(data)
+    def self.build_catalog(data)
       # Extract repository name, digests, and canonical versions from the validated data structure
       repository_name = data["repository_name"]
       digests = data["digests"]
@@ -26,7 +26,7 @@ module Equilibrium
       }
     end
 
-    def reverse_catalog(catalog_data)
+    def self.reverse_catalog(catalog_data)
       images = catalog_data["images"]
 
       return {"repository_name" => "", "digests" => {}, "canonical_versions" => {}} if images.nil? || images.empty?

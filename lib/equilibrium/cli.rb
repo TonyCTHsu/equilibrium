@@ -49,7 +49,7 @@ module Equilibrium
 
     desc "version", "Show version information"
     def version
-      Commands::VersionCommand.new.execute
+      Commands::VersionCommand.execute
     end
   end
 end

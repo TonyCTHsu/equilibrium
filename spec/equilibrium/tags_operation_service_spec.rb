@@ -6,16 +6,15 @@ require_relative "../../lib/equilibrium/tags_operation_service"
 RSpec.describe Equilibrium::TagsOperationService do
   include EquilibriumTestHelpers
 
-  let(:service) { described_class.new }
   let(:test_repository_url) { "gcr.io/test-project/test-image" }
 
   before do
     stub_registry_api(test_repository_url)
   end
 
-  describe "#generate_expected_output" do
+  describe ".generate_expected_output" do
     it "returns complete expected output structure" do
-      result = service.generate_expected_output(test_repository_url)
+      result = described_class.generate_expected_output(test_repository_url)
 
       expect(result).to have_key("repository_url")
       expect(result).to have_key("repository_name")
@@ -29,7 +28,7 @@ RSpec.describe Equilibrium::TagsOperationService do
     end
 
     it "generates sorted expected tags" do
-      result = service.generate_expected_output(test_repository_url)
+      result = described_class.generate_expected_output(test_repository_url)
 
       # Should have latest pointing to highest version (1.2.3)
       expect(result["digests"]["latest"]).to eq("sha256:abc123def456789012345678901234567890123456789012345678901234abcd")
@@ -37,7 +36,7 @@ RSpec.describe Equilibrium::TagsOperationService do
     end
 
     it "validates against expected/actual schema structure" do
-      result = service.generate_expected_output(test_repository_url)
+      result = described_class.generate_expected_output(test_repository_url)
 
       # Should have all required fields for expected/actual schema
       expect(result).to have_key("repository_url")
@@ -47,9 +46,9 @@ RSpec.describe Equilibrium::TagsOperationService do
     end
   end
 
-  describe "#generate_actual_output" do
+  describe ".generate_actual_output" do
     it "returns complete actual output structure" do
-      result = service.generate_actual_output(test_repository_url)
+      result = described_class.generate_actual_output(test_repository_url)
 
       expect(result).to have_key("repository_url")
       expect(result).to have_key("repository_name")
@@ -63,7 +62,7 @@ RSpec.describe Equilibrium::TagsOperationService do
     end
 
     it "includes only mutable tags in output" do
-      result = service.generate_actual_output(test_repository_url)
+      result = described_class.generate_actual_output(test_repository_url)
 
       # Should include mutable tags
       expect(result["digests"].keys).to include("latest")
@@ -73,7 +72,7 @@ RSpec.describe Equilibrium::TagsOperationService do
     end
 
     it "maps actual tags to canonical versions" do
-      result = service.generate_actual_output(test_repository_url)
+      result = described_class.generate_actual_output(test_repository_url)
 
       # Should have canonical version mappings for mutable tags
       result["digests"].keys.each do |tag|
@@ -84,7 +83,7 @@ RSpec.describe Equilibrium::TagsOperationService do
     end
 
     it "validates against expected/actual schema structure" do
-      result = service.generate_actual_output(test_repository_url)
+      result = described_class.generate_actual_output(test_repository_url)
 
       # Should have all required fields for expected/actual schema
       expect(result).to have_key("repository_url")

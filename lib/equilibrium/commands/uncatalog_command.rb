@@ -1,12 +1,18 @@
 # frozen_string_literal: true
 
-require_relative "../command_base"
+require_relative "../mixins/error_handling"
+require_relative "../mixins/input_output"
+require_relative "../mixins/schema_validation"
 require_relative "../catalog_builder"
 
 module Equilibrium
   module Commands
     # Command for converting catalog format back to expected/actual format
-    class UncatalogCommand < CommandBase
+    class UncatalogCommand
+      include Mixins::ErrorHandling
+      include Mixins::InputOutput
+      include Mixins::SchemaValidation
+
       # Execute the uncatalog command
       # @param file_path [String, nil] Optional file path, uses stdin if nil
       def execute(file_path = nil)
@@ -19,16 +25,11 @@ module Equilibrium
           validate_catalog_schema(data)
 
           # Convert back to expected/actual format
-          builder = CatalogBuilder.new
-          result = builder.reverse_catalog(data)
+          result = CatalogBuilder.reverse_catalog(data)
 
           # Output as JSON
           puts JSON.pretty_generate(result)
         end
-      rescue JSON::ParserError => e
-        error_and_exit("Invalid JSON input: #{e.message}")
-      rescue => e
-        error_and_exit(e.message)
       end
     end
   end

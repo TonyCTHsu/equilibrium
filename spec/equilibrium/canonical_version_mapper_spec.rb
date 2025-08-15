@@ -4,9 +4,7 @@ require_relative "../spec_helper"
 require_relative "../../lib/equilibrium/canonical_version_mapper"
 
 RSpec.describe Equilibrium::CanonicalVersionMapper do
-  let(:mapper) { described_class.new }
-
-  describe "#map_to_canonical_versions" do
+  describe ".map_to_canonical_versions" do
     let(:mutable_tags) do
       {
         "latest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
@@ -24,7 +22,7 @@ RSpec.describe Equilibrium::CanonicalVersionMapper do
     end
 
     it "maps mutable tags to semantic versions by digest matching" do
-      result = mapper.map_to_canonical_versions(mutable_tags, semantic_tags)
+      result = described_class.map_to_canonical_versions(mutable_tags, semantic_tags)
 
       expect(result["latest"]).to eq("1.2.3")
       expect(result["1"]).to eq("1.2.3")
@@ -32,7 +30,7 @@ RSpec.describe Equilibrium::CanonicalVersionMapper do
     end
 
     it "returns empty hash for empty input" do
-      result = mapper.map_to_canonical_versions({}, {})
+      result = described_class.map_to_canonical_versions({}, {})
 
       expect(result).to eq({})
     end
@@ -42,7 +40,7 @@ RSpec.describe Equilibrium::CanonicalVersionMapper do
         "latest" => "sha256:nonexistent1234567890123456789012345678901234567890123456789012"
       }
 
-      result = mapper.map_to_canonical_versions(mutable_tags_no_match, semantic_tags)
+      result = described_class.map_to_canonical_versions(mutable_tags_no_match, semantic_tags)
 
       expect(result).to eq({})
     end
@@ -53,7 +51,7 @@ RSpec.describe Equilibrium::CanonicalVersionMapper do
         "dev" => "sha256:nonexistent1234567890123456789012345678901234567890123456789012"      # no match
       }
 
-      result = mapper.map_to_canonical_versions(mixed_tags, semantic_tags)
+      result = described_class.map_to_canonical_versions(mixed_tags, semantic_tags)
 
       expect(result).to eq({"latest" => "1.2.3"})
     end
@@ -65,7 +63,7 @@ RSpec.describe Equilibrium::CanonicalVersionMapper do
         "stable" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd"
       }
 
-      result = mapper.map_to_canonical_versions(same_digest_tags, semantic_tags)
+      result = described_class.map_to_canonical_versions(same_digest_tags, semantic_tags)
 
       expect(result["latest"]).to eq("1.2.3")
       expect(result["1"]).to eq("1.2.3")
@@ -78,7 +76,7 @@ RSpec.describe Equilibrium::CanonicalVersionMapper do
         "1.2.3" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd"
       }
 
-      result = mapper.map_to_canonical_versions(empty_mutable, non_empty_semantic)
+      result = described_class.map_to_canonical_versions(empty_mutable, non_empty_semantic)
 
       expect(result).to eq({})
     end

@@ -1,12 +1,18 @@
 # frozen_string_literal: true
 
-require_relative "../command_base"
+require_relative "../mixins/error_handling"
+require_relative "../mixins/input_output"
+require_relative "../mixins/schema_validation"
 require_relative "../analyzer"
 
 module Equilibrium
   module Commands
     # Command for analyzing expected vs actual tags and generating remediation plan
-    class AnalyzeCommand < CommandBase
+    class AnalyzeCommand
+      include Mixins::ErrorHandling
+      include Mixins::InputOutput
+      include Mixins::SchemaValidation
+
       # Execute the analyze command
       # @param options [Hash] Command options (expected, actual, format, etc.)
       def execute(options = {})
@@ -16,8 +22,7 @@ module Equilibrium
           actual_data = load_and_validate_json_file(options[:actual])
 
           # Perform analysis
-          analyzer = Analyzer.new
-          analysis = analyzer.analyze(expected_data, actual_data)
+          analysis = Analyzer.analyze(expected_data, actual_data)
 
           # Validate output schema
           validate_analyzer_output_schema(analysis)
@@ -25,8 +30,6 @@ module Equilibrium
           # Format and display output
           format_output(analysis, options[:format] || "summary", "analysis")
         end
-      rescue => e
-        error_and_exit(e.message)
       end
     end
   end

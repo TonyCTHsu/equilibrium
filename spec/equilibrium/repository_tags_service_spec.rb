@@ -6,16 +6,15 @@ require_relative "../../lib/equilibrium/repository_tags_service"
 RSpec.describe Equilibrium::RepositoryTagsService do
   include EquilibriumTestHelpers
 
-  let(:service) { described_class.new }
   let(:test_repository_url) { "gcr.io/test-project/test-image" }
 
   before do
     stub_registry_api(test_repository_url)
   end
 
-  describe "#generate_expected_tags" do
+  describe ".generate_expected_tags" do
     it "returns expected tag data structure" do
-      result = service.generate_expected_tags(test_repository_url)
+      result = described_class.generate_expected_tags(test_repository_url)
 
       expect(result).to have_key("digests")
       expect(result).to have_key("canonical_versions")
@@ -24,7 +23,7 @@ RSpec.describe Equilibrium::RepositoryTagsService do
     end
 
     it "generates correct virtual tags" do
-      result = service.generate_expected_tags(test_repository_url)
+      result = described_class.generate_expected_tags(test_repository_url)
 
       # Should have latest pointing to highest version (1.2.3)
       expect(result["digests"]["latest"]).to eq("sha256:abc123def456789012345678901234567890123456789012345678901234abcd")
@@ -32,9 +31,9 @@ RSpec.describe Equilibrium::RepositoryTagsService do
     end
   end
 
-  describe "#generate_actual_tags" do
+  describe ".generate_actual_tags" do
     it "returns actual tag data structure" do
-      result = service.generate_actual_tags(test_repository_url)
+      result = described_class.generate_actual_tags(test_repository_url)
 
       expect(result).to have_key("digests")
       expect(result).to have_key("canonical_versions")
@@ -43,7 +42,7 @@ RSpec.describe Equilibrium::RepositoryTagsService do
     end
 
     it "includes only mutable tags" do
-      result = service.generate_actual_tags(test_repository_url)
+      result = described_class.generate_actual_tags(test_repository_url)
 
       # Should include mutable tags
       expect(result["digests"].keys).to include("latest")
@@ -53,7 +52,7 @@ RSpec.describe Equilibrium::RepositoryTagsService do
     end
 
     it "maps mutable tags to canonical versions" do
-      result = service.generate_actual_tags(test_repository_url)
+      result = described_class.generate_actual_tags(test_repository_url)
 
       # Should have canonical version mappings for mutable tags
       result["digests"].keys.each do |tag|
