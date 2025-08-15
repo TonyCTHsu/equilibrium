@@ -8,6 +8,7 @@ module Equilibrium
     # Example output (perfect equilibrium):
     # {
     #   "repository_url": "gcr.io/datadoghq/apm-inject",
+    #   "repository_name": "apm-inject",
     #   "expected_count": 28,
     #   "actual_count": 28,
     #   "missing_tags": {},
@@ -20,6 +21,7 @@ module Equilibrium
     # Example output (requires remediation):
     # {
     #   "repository_url": "gcr.io/datadoghq/example",
+    #   "repository_name": "example",
     #   "expected_count": 3,
     #   "actual_count": 2,
     #   "missing_tags": {
@@ -49,9 +51,10 @@ module Equilibrium
       "title" => "Equilibrium Analyzer Output Schema",
       "description" => "Schema for output from 'equilibrium analyze --format=json' command",
       "type" => "object",
-      "required" => ["repository_url", "expected_count", "actual_count", "missing_tags", "unexpected_tags", "mismatched_tags", "status", "remediation_plan"],
+      "required" => ["repository_name", "expected_count", "actual_count", "missing_tags", "unexpected_tags", "mismatched_tags", "status", "remediation_plan"],
       "properties" => {
         "repository_url" => {"type" => "string"},
+        "repository_name" => {"type" => "string"},
         "expected_count" => {"type" => "integer", "minimum" => 0},
         "actual_count" => {"type" => "integer", "minimum" => 0},
         "status" => {"enum" => ["perfect", "missing_tags", "mismatched", "extra_tags"]},
@@ -84,7 +87,7 @@ module Equilibrium
           "type" => "array",
           "items" => {
             "type" => "object",
-            "required" => ["action", "tag", "command"],
+            "required" => ["action", "tag"],
             "properties" => {
               "action" => {"enum" => ["create_tag", "update_tag", "remove_tag"]},
               "tag" => {"type" => "string"},

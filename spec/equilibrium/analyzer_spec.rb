@@ -165,13 +165,13 @@ RSpec.describe Equilibrium::Analyzer do
       expect(result[:remediation_plan].size).to eq(3)
     end
 
-    it "validates repository URLs match between expected and actual data" do
+    it "validates repository names match between expected and actual data" do
       mismatched_actual_data = perfect_actual_data.dup
-      mismatched_actual_data["repository_url"] = "gcr.io/different/repo"
+      mismatched_actual_data["repository_name"] = "different-repo"
 
       expect {
         described_class.analyze(perfect_expected_data, mismatched_actual_data)
-      }.to raise_error(ArgumentError, /Repository URLs do not match/)
+      }.to raise_error(ArgumentError, /Repository names do not match/)
     end
   end
 
@@ -203,7 +203,7 @@ RSpec.describe Equilibrium::Analyzer do
     end
 
     it "generates create_tag commands for missing tags" do
-      plan = described_class.send(:generate_remediation_plan, analysis_missing, repository_url)
+      plan = described_class.send(:generate_remediation_plan, analysis_missing, repository_url, "test-image")
 
       expect(plan.size).to eq(2)
 
@@ -218,7 +218,7 @@ RSpec.describe Equilibrium::Analyzer do
     end
 
     it "generates update_tag commands for mismatched tags" do
-      plan = described_class.send(:generate_remediation_plan, analysis_mismatched, repository_url)
+      plan = described_class.send(:generate_remediation_plan, analysis_mismatched, repository_url, "test-image")
 
       expect(plan.size).to eq(1)
 
@@ -231,7 +231,7 @@ RSpec.describe Equilibrium::Analyzer do
     end
 
     it "generates remove_tag commands for unexpected tags" do
-      plan = described_class.send(:generate_remediation_plan, analysis_extra, repository_url)
+      plan = described_class.send(:generate_remediation_plan, analysis_extra, repository_url, "test-image")
 
       expect(plan.size).to eq(1)
 
@@ -244,11 +244,23 @@ RSpec.describe Equilibrium::Analyzer do
     end
 
     it "handles unknown repository URL" do
-      plan = described_class.send(:generate_remediation_plan, analysis_missing, "unknown")
+      plan = described_class.send(:generate_remediation_plan, analysis_missing, "unknown", "test-image")
 
       expect(plan.size).to eq(2)
       plan.each do |command|
         expect(command[:command]).to include("unknown")
+      end
+    end
+
+    it "handles missing repository URL" do
+      plan = described_class.send(:generate_remediation_plan, analysis_missing, nil, "test-image")
+
+      expect(plan.size).to eq(2)
+      plan.each do |command|
+        expect(command).to have_key(:action)
+        expect(command).to have_key(:tag)
+        expect(command).to have_key(:digest)
+        expect(command).not_to have_key(:command)
       end
     end
   end

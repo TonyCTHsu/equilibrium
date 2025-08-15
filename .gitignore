@@ -15,3 +15,5 @@ vendor/
 .rspec_status
 
 Gemfile.lock
+
+*.json

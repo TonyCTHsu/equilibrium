@@ -4,6 +4,7 @@ require_relative "../mixins/error_handling"
 require_relative "../mixins/input_output"
 require_relative "../schema_validator"
 require_relative "../schemas/catalog"
+require_relative "../schemas/expected_actual"
 require_relative "../catalog_builder"
 
 module Equilibrium
@@ -27,6 +28,9 @@ module Equilibrium
 
           # Convert back to expected/actual format
           result = CatalogBuilder.reverse_catalog(data)
+
+          # Validate output before printing
+          SchemaValidator.validate!(result, Equilibrium::Schemas::EXPECTED_ACTUAL, error_prefix: "Output validation failed")
 
           # Output as JSON
           puts JSON.pretty_generate(result)

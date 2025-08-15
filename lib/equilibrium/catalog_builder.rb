@@ -43,10 +43,11 @@ module Equilibrium
       end
 
       {
+        "repository_url" => catalog_data["repository_url"],
         "repository_name" => repository_name,
         "digests" => digests,
         "canonical_versions" => canonical_versions
-      }
+      }.compact
     end
   end
 end

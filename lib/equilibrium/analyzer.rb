@@ -10,32 +10,36 @@ module Equilibrium
       expected_tags = expected_data["digests"]
       actual_tags = actual_data["digests"]
 
-      # Extract and validate repository URLs match
+      # Extract and validate repository names match
+      expected_name = expected_data["repository_name"]
+      actual_name = actual_data["repository_name"]
       expected_url = expected_data["repository_url"]
       actual_url = actual_data["repository_url"]
 
-      if expected_url != actual_url
-        raise ArgumentError, "Repository URLs do not match: expected '#{expected_url}', actual '#{actual_url}'"
+      if expected_name != actual_name
+        raise ArgumentError, "Repository names do not match: expected '#{expected_name}', actual '#{actual_name}'"
       end
 
-      final_repository_url = expected_url
+      final_repository_name = expected_name
+      final_repository_url = expected_url || actual_url
 
       analysis = {
         repository_url: final_repository_url,
+        repository_name: final_repository_name,
         expected_count: expected_tags.size,
         actual_count: actual_tags.size,
         missing_tags: find_missing_tags(expected_tags, actual_tags),
         unexpected_tags: find_unexpected_tags(expected_tags, actual_tags),
         mismatched_tags: find_mismatched_tags(expected_tags, actual_tags),
         status: determine_status(expected_tags, actual_tags)
-      }
+      }.compact
 
       # Add remediation plan for JSON format
-      analysis[:remediation_plan] = generate_remediation_plan(analysis, final_repository_url)
+      analysis[:remediation_plan] = generate_remediation_plan(analysis, final_repository_url, final_repository_name)
       analysis
     end
 
-    private_class_method def self.generate_remediation_plan(analysis, repository_url)
+    private_class_method def self.generate_remediation_plan(analysis, repository_url, repository_name)
       plan = []
 
       analysis[:missing_tags].each do |tag, digest|
@@ -43,8 +47,8 @@ module Equilibrium
           action: "create_tag",
           tag: tag,
           digest: digest,
-          command: "gcloud container images add-tag #{repository_url}@#{digest} #{repository_url}:#{tag}"
-        }
+          command: repository_url ? "gcloud container images add-tag #{repository_url}@#{digest} #{repository_url}:#{tag}" : nil
+        }.compact
       end
 
       analysis[:mismatched_tags].each do |tag, data|
@@ -53,8 +57,8 @@ module Equilibrium
           tag: tag,
           old_digest: data[:actual],
           new_digest: data[:expected],
-          command: "gcloud container images add-tag #{repository_url}@#{data[:expected]} #{repository_url}:#{tag}"
-        }
+          command: repository_url ? "gcloud container images add-tag #{repository_url}@#{data[:expected]} #{repository_url}:#{tag}" : nil
+        }.compact
       end
 
       analysis[:unexpected_tags].each do |tag, digest|
@@ -62,8 +66,8 @@ module Equilibrium
           action: "remove_tag",
           tag: tag,
           digest: digest,
-          command: "gcloud container images untag #{repository_url}:#{tag}"
-        }
+          command: repository_url ? "gcloud container images untag #{repository_url}:#{tag}" : nil
+        }.compact
       end
 
       plan
