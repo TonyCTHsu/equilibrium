@@ -232,22 +232,6 @@ RSpec.describe Equilibrium::CatalogBuilder do
       expect(result["canonical_versions"]).to eq({})
     end
 
-    it "validates input catalog against schema" do
-      invalid_catalog = {
-        "images" => [
-          {
-            "name" => "test-image",
-            "tag" => "latest"
-            # Missing required fields
-          }
-        ]
-      }
-
-      expect {
-        builder.reverse_catalog(invalid_catalog)
-      }.to raise_error(Equilibrium::CatalogBuilder::Error, /Catalog validation failed/)
-    end
-
     it "roundtrip conversion preserves data" do
       # Start with expected/actual format
       original_data = sample_data.dup

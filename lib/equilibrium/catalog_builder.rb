@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 require "json"
-require_relative "schema_validator"
-require_relative "schemas/catalog"
 
 module Equilibrium
   class CatalogBuilder
@@ -23,17 +21,12 @@ module Equilibrium
         }
       end
 
-      catalog = {
+      {
         "images" => images
       }
-
-      validate_catalog(catalog)
-      catalog
     end
 
     def reverse_catalog(catalog_data)
-      validate_catalog(catalog_data)
-
       images = catalog_data["images"]
 
       return {"repository_name" => "", "digests" => {}, "canonical_versions" => {}} if images.nil? || images.empty?
@@ -54,14 +47,6 @@ module Equilibrium
         "digests" => digests,
         "canonical_versions" => canonical_versions
       }
-    end
-
-    private
-
-    def validate_catalog(catalog)
-      SchemaValidator.validate!(catalog, Equilibrium::Schemas::CATALOG, error_prefix: "Catalog validation failed")
-    rescue SchemaValidator::ValidationError => e
-      raise Error, e.message
     end
   end
 end

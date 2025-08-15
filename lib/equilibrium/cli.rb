@@ -5,6 +5,8 @@ require "json"
 require_relative "../equilibrium"
 require_relative "schema_validator"
 require_relative "schemas/expected_actual"
+require_relative "schemas/catalog"
+require_relative "schemas/analyzer_output"
 require_relative "summary_formatter"
 
 module Equilibrium
@@ -28,6 +30,8 @@ module Equilibrium
 
       case options[:format]
       when "json"
+        # Validate output against analyzer schema before outputting
+        validate_analyzer_output_schema(analysis)
         puts JSON.pretty_generate(analysis)
       when "summary"
         formatter = SummaryFormatter.new
@@ -180,6 +184,9 @@ module Equilibrium
 
       data = JSON.parse(input)
 
+      # Validate input against catalog schema
+      validate_catalog_schema(data)
+
       builder = CatalogBuilder.new
       result = builder.reverse_catalog(data)
 
@@ -230,6 +237,18 @@ module Equilibrium
 
     def validate_expected_actual_schema(data)
       SchemaValidator.validate!(data, Equilibrium::Schemas::EXPECTED_ACTUAL, error_prefix: "Schema validation failed")
+    rescue SchemaValidator::ValidationError => e
+      error_and_exit(e.message)
+    end
+
+    def validate_catalog_schema(data)
+      SchemaValidator.validate!(data, Equilibrium::Schemas::CATALOG, error_prefix: "Catalog schema validation failed")
+    rescue SchemaValidator::ValidationError => e
+      error_and_exit(e.message)
+    end
+
+    def validate_analyzer_output_schema(data)
+      SchemaValidator.validate!(data, Equilibrium::Schemas::ANALYZER_OUTPUT, error_prefix: "Analyzer output schema validation failed")
     rescue SchemaValidator::ValidationError => e
       error_and_exit(e.message)
     end
