@@ -222,6 +222,108 @@ RSpec.describe Equilibrium::CLI do
     end
   end
 
+  describe "#uncatalog" do
+    let(:sample_catalog_data) do
+      {
+        "images" => [
+          {
+            "name" => "test-image",
+            "tag" => "latest",
+            "digest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
+            "canonical_version" => "1.2.3"
+          },
+          {
+            "name" => "test-image",
+            "tag" => "1",
+            "digest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
+            "canonical_version" => "1.2.3"
+          },
+          {
+            "name" => "test-image",
+            "tag" => "1.2",
+            "digest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
+            "canonical_version" => "1.2.3"
+          }
+        ]
+      }
+    end
+
+    it "converts catalog format back to expected/actual format from stdin" do
+      allow($stdin).to receive(:read).and_return(JSON.pretty_generate(sample_catalog_data))
+
+      output = capture_stdout { cli.uncatalog }
+      data = JSON.parse(output)
+
+      expect(data).to have_key("repository_name")
+      expect(data).to have_key("digests")
+      expect(data).to have_key("canonical_versions")
+
+      expect(data["repository_name"]).to eq("test-image")
+      expect(data["digests"]).to be_a(Hash)
+      expect(data["canonical_versions"]).to be_a(Hash)
+      expect(data["digests"].size).to eq(3)
+    end
+
+    it "reads from file when provided" do
+      temp_file = create_temp_json_file(sample_catalog_data)
+
+      output = capture_stdout { cli.uncatalog(temp_file) }
+      data = JSON.parse(output)
+
+      expect(data["repository_name"]).to eq("test-image")
+      expect(data["digests"]["latest"]).to eq("sha256:abc123def456789012345678901234567890123456789012345678901234abcd")
+    end
+
+    it "validates input against catalog schema" do
+      invalid_input = {"invalid" => "data"}
+      temp_file = create_temp_json_file(invalid_input)
+
+      expect {
+        capture_stdout { cli.uncatalog(temp_file) }
+      }.to raise_error(SystemExit)
+    end
+
+    it "handles empty input gracefully" do
+      allow($stdin).to receive(:read).and_return("")
+
+      expect {
+        capture_stdout { cli.uncatalog }
+      }.to raise_error(SystemExit)
+    end
+
+    it "roundtrip conversion preserves data" do
+      # Start with expected/actual format, convert to catalog and back
+      original_data = {
+        "repository_url" => "gcr.io/test-project/test-image",
+        "repository_name" => "test-image",
+        "digests" => {
+          "latest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
+          "1" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
+          "1.2" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd"
+        },
+        "canonical_versions" => {
+          "latest" => "1.2.3",
+          "1" => "1.2.3",
+          "1.2" => "1.2.3"
+        }
+      }
+
+      # First convert to catalog
+      allow($stdin).to receive(:read).and_return(JSON.pretty_generate(original_data))
+      catalog_output = capture_stdout { cli.catalog }
+
+      # Then convert back to expected/actual format
+      allow($stdin).to receive(:read).and_return(catalog_output)
+      result_output = capture_stdout { cli.uncatalog }
+      result_data = JSON.parse(result_output)
+
+      # Verify roundtrip preserves essential data
+      expect(result_data["repository_name"]).to eq(original_data["repository_name"])
+      expect(result_data["digests"]).to eq(original_data["digests"])
+      expect(result_data["canonical_versions"]).to eq(original_data["canonical_versions"])
+    end
+  end
+
   describe "#analyze" do
     let(:expected_data) { sample_input_data }
     let(:actual_data) { sample_input_data } # Perfect equilibrium

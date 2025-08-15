@@ -163,6 +163,33 @@ module Equilibrium
       error_and_exit(e.message)
     end
 
+    desc "uncatalog [FILE]", "Convert catalog format back to expected/actual format (reads from file or stdin)"
+    def uncatalog(file_path = nil)
+      # Read from file or stdin
+      if file_path
+        unless File.exist?(file_path)
+          error_and_exit("File not found: #{file_path}")
+        end
+        input = File.read(file_path).strip
+      else
+        input = $stdin.read.strip
+        if input.empty?
+          error_and_exit("No input provided. Use: equilibrium catalog registry | equilibrium uncatalog")
+        end
+      end
+
+      data = JSON.parse(input)
+
+      builder = CatalogBuilder.new
+      result = builder.reverse_catalog(data)
+
+      puts JSON.pretty_generate(result)
+    rescue JSON::ParserError => e
+      error_and_exit("Invalid JSON input: #{e.message}")
+    rescue => e
+      error_and_exit(e.message)
+    end
+
     desc "version", "Show version information"
     def version
       say "Equilibrium v#{Equilibrium::VERSION}"

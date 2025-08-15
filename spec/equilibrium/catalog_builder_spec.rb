@@ -179,6 +179,96 @@ RSpec.describe Equilibrium::CatalogBuilder do
     end
   end
 
+  describe "#reverse_catalog" do
+    let(:sample_catalog) do
+      {
+        "images" => [
+          {
+            "name" => "test-image",
+            "tag" => "latest",
+            "digest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
+            "canonical_version" => "1.2.3"
+          },
+          {
+            "name" => "test-image",
+            "tag" => "1",
+            "digest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
+            "canonical_version" => "1.2.3"
+          },
+          {
+            "name" => "test-image",
+            "tag" => "1.2",
+            "digest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
+            "canonical_version" => "1.2.3"
+          }
+        ]
+      }
+    end
+
+    it "converts catalog back to expected/actual format" do
+      result = builder.reverse_catalog(sample_catalog)
+
+      expect(result).to have_key("repository_name")
+      expect(result).to have_key("digests")
+      expect(result).to have_key("canonical_versions")
+
+      expect(result["repository_name"]).to eq("test-image")
+      expect(result["digests"]).to be_a(Hash)
+      expect(result["canonical_versions"]).to be_a(Hash)
+    end
+
+    it "correctly maps tags to digests and canonical versions" do
+      result = builder.reverse_catalog(sample_catalog)
+
+      expect(result["digests"]["latest"]).to eq("sha256:abc123def456789012345678901234567890123456789012345678901234abcd")
+      expect(result["digests"]["1"]).to eq("sha256:abc123def456789012345678901234567890123456789012345678901234abcd")
+      expect(result["digests"]["1.2"]).to eq("sha256:abc123def456789012345678901234567890123456789012345678901234abcd")
+
+      expect(result["canonical_versions"]["latest"]).to eq("1.2.3")
+      expect(result["canonical_versions"]["1"]).to eq("1.2.3")
+      expect(result["canonical_versions"]["1.2"]).to eq("1.2.3")
+    end
+
+    it "handles empty images array" do
+      empty_catalog = {"images" => []}
+      result = builder.reverse_catalog(empty_catalog)
+
+      expect(result["repository_name"]).to eq("")
+      expect(result["digests"]).to eq({})
+      expect(result["canonical_versions"]).to eq({})
+    end
+
+    it "validates input catalog against schema" do
+      invalid_catalog = {
+        "images" => [
+          {
+            "name" => "test-image",
+            "tag" => "latest"
+            # Missing required fields
+          }
+        ]
+      }
+
+      expect {
+        builder.reverse_catalog(invalid_catalog)
+      }.to raise_error(Equilibrium::CatalogBuilder::Error, /Catalog validation failed/)
+    end
+
+    it "roundtrip conversion preserves data" do
+      # Start with expected/actual format
+      original_data = sample_data.dup
+
+      # Convert to catalog and back
+      catalog = builder.build_catalog(original_data)
+      result = builder.reverse_catalog(catalog)
+
+      # Compare essential data (excluding repository_url which isn't preserved)
+      expect(result["repository_name"]).to eq(original_data["repository_name"])
+      expect(result["digests"]).to eq(original_data["digests"])
+      expect(result["canonical_versions"]).to eq(original_data["canonical_versions"])
+    end
+  end
+
   describe "integration with real data" do
     it "works with actual virtual tag computation results" do
       # This would be the result from expected/actual data structure
@@ -213,6 +303,34 @@ RSpec.describe Equilibrium::CatalogBuilder do
       schemer = JSONSchemer.schema(Equilibrium::Schemas::CATALOG)
       errors = schemer.validate(catalog).to_a
       expect(errors).to be_empty
+    end
+
+    it "roundtrip works with realistic data" do
+      realistic_data = {
+        "repository_url" => "gcr.io/datadoghq/apm-inject",
+        "repository_name" => "apm-inject",
+        "digests" => {
+          "latest" => "sha256:5fcfe7ac14f6eeb0fe086ac7021d013d764af573b8c2d98113abf26b4d09b58c",
+          "0" => "sha256:5fcfe7ac14f6eeb0fe086ac7021d013d764af573b8c2d98113abf26b4d09b58c",
+          "0.43" => "sha256:5fcfe7ac14f6eeb0fe086ac7021d013d764af573b8c2d98113abf26b4d09b58c",
+          "0.42" => "sha256:c7a822d271eb72e6c3bee2aaf579c8a3732eda9710d27effdca6beb3f5f63b0e"
+        },
+        "canonical_versions" => {
+          "latest" => "0.43.2",
+          "0" => "0.43.2",
+          "0.43" => "0.43.1",
+          "0.42" => "0.42.3"
+        }
+      }
+
+      # Forward and reverse conversion
+      catalog = builder.build_catalog(realistic_data)
+      result = builder.reverse_catalog(catalog)
+
+      # Verify essential data is preserved
+      expect(result["repository_name"]).to eq("apm-inject")
+      expect(result["digests"]).to eq(realistic_data["digests"])
+      expect(result["canonical_versions"]).to eq(realistic_data["canonical_versions"])
     end
   end
 end

@@ -31,6 +31,31 @@ module Equilibrium
       catalog
     end
 
+    def reverse_catalog(catalog_data)
+      validate_catalog(catalog_data)
+
+      images = catalog_data["images"]
+
+      return {"repository_name" => "", "digests" => {}, "canonical_versions" => {}} if images.nil? || images.empty?
+
+      repository_name = images.first["name"]
+
+      digests = {}
+      canonical_versions = {}
+
+      images.each do |image|
+        tag = image["tag"]
+        digests[tag] = image["digest"]
+        canonical_versions[tag] = image["canonical_version"]
+      end
+
+      {
+        "repository_name" => repository_name,
+        "digests" => digests,
+        "canonical_versions" => canonical_versions
+      }
+    end
+
     private
 
     def validate_catalog(catalog)
