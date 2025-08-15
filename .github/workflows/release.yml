@@ -62,9 +62,9 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name:  ${{ steps.version.outputs.number }}
+          name: ${{ steps.version.outputs.number }}
           tag_name: ${{ github.ref_name }}
-          draft: true
+
           body: ${{ steps.changelog_reader.outputs.changes }}
           files: |
             pkg/*.gem
