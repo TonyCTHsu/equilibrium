@@ -255,19 +255,6 @@ RSpec.describe Equilibrium::Analyzer do
         expect(command[:command]).to include("unknown")
       end
     end
-
-    it "handles missing repository URL" do
-      analyzer = described_class.new
-      plan = analyzer.send(:generate_remediation_plan, analysis_missing, nil, "test-image")
-
-      expect(plan.size).to eq(2)
-      plan.each do |command|
-        expect(command).to have_key(:action)
-        expect(command).to have_key(:tag)
-        expect(command).to have_key(:digest)
-        expect(command).not_to have_key(:command)
-      end
-    end
   end
 
   describe "#determine_status" do

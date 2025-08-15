@@ -69,7 +69,7 @@ RSpec.describe Equilibrium::CLI do
 
       expect {
         capture_stdout { cli.expected(test_repository_url) }
-      }.to raise_error(/Request failed/)
+      }.to raise_error(/API request failed/)
     end
 
     describe "format options" do

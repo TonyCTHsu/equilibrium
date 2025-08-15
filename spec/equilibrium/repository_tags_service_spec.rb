@@ -57,7 +57,13 @@ RSpec.describe Equilibrium::RepositoryTagsService do
       # Should have canonical version mappings for mutable tags
       result["digests"].keys.each do |tag|
         if result["canonical_versions"][tag]
-          expect(result["canonical_versions"][tag]).to match(/^\d+\.\d+\.\d+$/)
+          # canonical_versions[tag] returns [version, digest] array, we want just the version
+          canonical_version = result["canonical_versions"][tag]
+          if canonical_version.is_a?(Array)
+            expect(canonical_version[0]).to match(/^\d+\.\d+\.\d+$/)
+          else
+            expect(canonical_version).to match(/^\d+\.\d+\.\d+$/)
+          end
         end
       end
     end

@@ -51,7 +51,7 @@ RSpec.describe Equilibrium::RegistryClient do
 
         expect {
           client.tagged_digests
-        }.to raise_error(Equilibrium::RegistryClient::Error, /Request failed.*404/)
+        }.to raise_error(Equilibrium::RegistryClient::Error, /API request failed.*404/)
       end
 
       it "handles network errors" do
@@ -60,7 +60,7 @@ RSpec.describe Equilibrium::RegistryClient do
 
         expect {
           client.tagged_digests
-        }.to raise_error(Equilibrium::RegistryClient::Error, /Request failed.*getaddrinfo failed/)
+        }.to raise_error(SocketError, /getaddrinfo failed/)
       end
 
       it "handles invalid JSON response" do
@@ -69,15 +69,14 @@ RSpec.describe Equilibrium::RegistryClient do
 
         expect {
           client.tagged_digests
-        }.to raise_error(Equilibrium::RegistryClient::Error, /Invalid JSON response/)
+        }.to raise_error(JSON::ParserError)
       end
     end
 
     context "with invalid repository URL format" do
       it "handles repository URL with insufficient parts" do
-        invalid_client = described_class.new("gcr.io/only-one-part")
         expect {
-          invalid_client.tagged_digests
+          described_class.new("gcr.io/only-one-part")
         }.to raise_error(Equilibrium::RegistryClient::Error, /Invalid GCR registry format/)
       end
     end

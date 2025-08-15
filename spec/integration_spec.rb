@@ -133,7 +133,7 @@ RSpec.describe "Integration Tests" do
 
       output, status = Open3.capture2e("./equilibrium expected #{test_repository_url}")
       expect(status.success?).to be false
-      expect(output).to include("Request failed")
+      expect(output).to include("API request failed")
     end
 
     it "handles invalid JSON input to catalog command" do

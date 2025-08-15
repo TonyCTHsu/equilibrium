@@ -40,9 +40,9 @@ RSpec.describe Equilibrium::CanonicalVersionMapper do
         "latest" => "sha256:nonexistent1234567890123456789012345678901234567890123456789012"
       }
 
-      result = described_class.map_to_canonical_versions(mutable_tags_no_match, semantic_tags)
-
-      expect(result).to eq({})
+      expect {
+        described_class.map_to_canonical_versions(mutable_tags_no_match, semantic_tags)
+      }.to raise_error(/No semantic tag found/)
     end
 
     it "only includes tags with matching digests" do
@@ -51,9 +51,9 @@ RSpec.describe Equilibrium::CanonicalVersionMapper do
         "dev" => "sha256:nonexistent1234567890123456789012345678901234567890123456789012"      # no match
       }
 
-      result = described_class.map_to_canonical_versions(mixed_tags, semantic_tags)
-
-      expect(result).to eq({"latest" => "1.2.3"})
+      expect {
+        described_class.map_to_canonical_versions(mixed_tags, semantic_tags)
+      }.to raise_error(/No semantic tag found/)
     end
 
     it "handles multiple tags with same digest" do

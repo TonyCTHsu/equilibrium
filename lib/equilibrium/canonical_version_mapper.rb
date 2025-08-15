@@ -7,7 +7,7 @@ module Equilibrium
 
       mutable_tags.each do |mutable_tag, m_digest|
         # Find semantic tag with same digest, raise if not found
-        canonical_version = semantic_tags.find { |_, s_digest| s_digest == m_digest } ||
+        canonical_version = semantic_tags.key(m_digest) ||
           (raise "No semantic tag found with digest #{m_digest} for mutable tag '#{mutable_tag}'")
 
         canonical_versions[mutable_tag] = canonical_version
