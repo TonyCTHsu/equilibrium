@@ -56,17 +56,25 @@ flowchart LR
 
     I --> J[Analysis &<br/>Remediation<br/>Update: latest]
 
+    H --> K[catalog<br/>Command]
+    K --> L[Catalog Format<br/>External Integration]
+    L --> M[uncatalog<br/>Command]
+    M --> N[Back to Expected/<br/>Actual Format]
+
     classDef source fill:#e1d5e7
     classDef process fill:#fff2cc
     classDef expected fill:#d5e8d4
     classDef actual fill:#f8cecc
     classDef result fill:#ffcccc
+    classDef catalog fill:#dae8fc
 
     class A source
     class C,D,G,I process
     class E,H expected
     class F actual
     class J result
+    class K,M catalog
+    class L,N catalog
 ```
 
 **Process Steps:**
@@ -75,6 +83,7 @@ flowchart LR
 3. **Compute Expected**: Generate mutable tags based on semantic versions
 4. **Fetch Actual**: Query registry for current mutable tag state
 5. **Compare & Analyze**: Identify mismatches and generate remediation plan
+6. **Format Conversion**: Transform between expected/actual and catalog formats for external integration
 
 ## Installation
 
@@ -98,6 +107,10 @@ equilibrium actual "$REPO"
 equilibrium expected "$REPO" --format json > expected.json
 equilibrium actual "$REPO" --format json > actual.json
 equilibrium analyze --expected expected.json --actual actual.json
+
+# 4. Convert to catalog format and back
+equilibrium expected "$REPO" --format json | equilibrium catalog
+echo '{"images":[...]}' | equilibrium uncatalog
 ```
 
 *For detailed command options, run `equilibrium help [command]`*
@@ -254,6 +267,8 @@ All commands output structured JSON following validated schemas (see [schemas](l
 }
 ```
 
+**Uncatalog Command**: Converts catalog format back to expected/actual format (same schema as expected/actual commands).
+
 ### Summary Format
 Human-readable table format for quick visual inspection.
 
@@ -290,14 +305,33 @@ $ equilibrium analyze --expected expected.json --actual actual.json
 # Remediation: Create tags: 2→2.1.0, 2.1→2.1.0; Update: latest→2.1.0
 ```
 
-### Example 3: Automation Pipeline
+### Example 3: Catalog Format Conversion
+```bash
+REPO="gcr.io/project/myapp"
+
+# Generate expected tags and convert to catalog format
+equilibrium expected "$REPO" --format json | equilibrium catalog > catalog.json
+
+# Verify catalog format
+cat catalog.json
+# Output: {"images": [{"name": "myapp", "tag": "latest", ...}, ...]}
+
+# Convert catalog back to expected/actual format
+equilibrium uncatalog catalog.json
+# Output: {"repository_name": "myapp", "digests": {...}, "canonical_versions": {...}}
+
+# Or using stdin
+cat catalog.json | equilibrium uncatalog
+```
+
+### Example 4: Automation Pipeline
 ```bash
 #!/bin/bash
 REPO="gcr.io/project/image"
 
 # Daily equilibrium check
-equilibrium expected "$REPO" > expected.json
-equilibrium actual "$REPO" > actual.json
+equilibrium expected "$REPO" --format json > expected.json
+equilibrium actual "$REPO" --format json > actual.json
 equilibrium analyze --expected expected.json --actual actual.json --format json > report.json
 
 # Alert if out of equilibrium
