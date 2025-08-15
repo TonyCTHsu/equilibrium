@@ -3,25 +3,24 @@
 module Equilibrium
   module Schemas
     # JSON Schema for catalog output format
-    # Used by `equilibrium catalog` command
+    # Used by `catalog` command
     #
     # Example output:
     # {
+    #   "repository_url": "gcr.io/datadoghq/apm-inject",
+    #   "repository_name": "apm-inject",
     #   "images": [
     #     {
-    #       "name": "apm-inject",
     #       "tag": "latest",
     #       "digest": "sha256:5fcfe7ac14f6eeb0fe086ac7021d013d764af573b8c2d98113abf26b4d09b58c",
     #       "canonical_version": "0.43.2"
     #     },
     #     {
-    #       "name": "apm-inject",
     #       "tag": "0",
     #       "digest": "sha256:5fcfe7ac14f6eeb0fe086ac7021d013d764af573b8c2d98113abf26b4d09b58c",
     #       "canonical_version": "0.43.2"
     #     },
     #     {
-    #       "name": "apm-inject",
     #       "tag": "0.43",
     #       "digest": "sha256:5fcfe7ac14f6eeb0fe086ac7021d013d764af573b8c2d98113abf26b4d09b58c",
     #       "canonical_version": "0.43.1"
@@ -33,22 +32,30 @@ module Equilibrium
       "title" => "Tag Resolver Schema",
       "description" => "Schema for Resolve tag",
       "type" => "object",
+      "required" => ["repository_url", "repository_name", "images"],
       "properties" => {
+        "repository_url" => {
+          "type" => "string",
+          "description" => "Full repository URL (e.g., 'gcr.io/project-id/image-name')",
+          "minLength" => 1,
+          "pattern" => "^[a-zA-Z0-9.-]+(/[a-zA-Z0-9._-]+)*$"
+        },
+        "repository_name" => {
+          "type" => "string",
+          "description" => "Repository name extracted from URL (e.g., 'apm-inject')",
+          "minLength" => 1,
+          "pattern" => "^[a-zA-Z0-9._-]+$"
+        },
         "images" => {
           "type" => "array",
           "items" => {
             "type" => "object",
             "required" => [
-              "name",
               "tag",
               "digest",
               "canonical_version"
             ],
             "properties" => {
-              "name" => {
-                "type" => "string",
-                "description" => "The name of the image"
-              },
               "tag" => {
                 "type" => "string",
                 "description" => "The mutable tag of the image"

@@ -42,13 +42,17 @@ RSpec.describe Equilibrium::CatalogBuilder do
       catalog = described_class.build_catalog(sample_data)
 
       first_image = catalog["images"].first
-      expect(first_image).to have_key("name")
       expect(first_image).to have_key("tag")
       expect(first_image).to have_key("digest")
+      expect(first_image).to have_key("canonical_version")
 
-      expect(first_image["name"]).to eq("test-image")
       expect(first_image["tag"]).to match(/^(latest|\d+|\d+\.\d+)$/)
       expect(first_image["digest"]).to match(/^sha256:[a-f0-9]{64}$/)
+      expect(first_image["canonical_version"]).to match(/^\d+\.\d+\.\d+$/)
+
+      # Check top-level fields
+      expect(catalog["repository_name"]).to eq("test-image")
+      expect(catalog["repository_url"]).to eq("gcr.io/test-project/test-image")
     end
 
     it "includes all virtual tags" do
@@ -92,15 +96,15 @@ RSpec.describe Equilibrium::CatalogBuilder do
 
     it "validates correct catalog format" do
       valid_catalog = {
+        "repository_url" => "gcr.io/test-project/test-image",
+        "repository_name" => "test-image",
         "images" => [
           {
-            "name" => "test-image",
             "tag" => "latest",
             "digest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
             "canonical_version" => "1.2.3"
           },
           {
-            "name" => "test-image",
             "tag" => "1",
             "digest" => "sha256:def456789012345678901234567890123456789012345678901234567890abcd",
             "canonical_version" => "1.2.3"
@@ -115,9 +119,10 @@ RSpec.describe Equilibrium::CatalogBuilder do
 
     it "rejects invalid catalog format" do
       invalid_catalog = {
+        "repository_url" => "gcr.io/test-project/test-image",
+        "repository_name" => "test-image",
         "images" => [
           {
-            "name" => "test-image",
             "tag" => "latest"
             # Missing required "digest" field
           }
@@ -131,11 +136,13 @@ RSpec.describe Equilibrium::CatalogBuilder do
 
     it "rejects catalog with extra properties" do
       invalid_catalog = {
+        "repository_url" => "gcr.io/test-project/test-image",
+        "repository_name" => "test-image",
         "images" => [
           {
-            "name" => "test-image",
             "tag" => "latest",
             "digest" => "sha256:abc123def456ghi789jkl012mno345pqr678stu901vwx234yzab567cdef8901",
+            "canonical_version" => "1.2.3",
             "extra_field" => "not_allowed"
           }
         ]
@@ -148,11 +155,13 @@ RSpec.describe Equilibrium::CatalogBuilder do
 
     it "validates digest format" do
       invalid_digest_catalog = {
+        "repository_url" => "gcr.io/test-project/test-image",
+        "repository_name" => "test-image",
         "images" => [
           {
-            "name" => "test-image",
             "tag" => "latest",
-            "digest" => "invalid-digest-format"
+            "digest" => "invalid-digest-format",
+            "canonical_version" => "1.2.3"
           }
         ]
       }
@@ -163,7 +172,11 @@ RSpec.describe Equilibrium::CatalogBuilder do
     end
 
     it "allows empty images array" do
-      empty_catalog = {"images" => []}
+      empty_catalog = {
+        "repository_url" => "gcr.io/test-project/test-image",
+        "repository_name" => "test-image",
+        "images" => []
+      }
 
       errors = Equilibrium::SchemaValidator.validate(empty_catalog, schema)
 
@@ -174,21 +187,20 @@ RSpec.describe Equilibrium::CatalogBuilder do
   describe ".reverse_catalog" do
     let(:sample_catalog) do
       {
+        "repository_url" => "gcr.io/test-project/test-image",
+        "repository_name" => "test-image",
         "images" => [
           {
-            "name" => "test-image",
             "tag" => "latest",
             "digest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
             "canonical_version" => "1.2.3"
           },
           {
-            "name" => "test-image",
             "tag" => "1",
             "digest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
             "canonical_version" => "1.2.3"
           },
           {
-            "name" => "test-image",
             "tag" => "1.2",
             "digest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
             "canonical_version" => "1.2.3"
@@ -272,7 +284,7 @@ RSpec.describe Equilibrium::CatalogBuilder do
 
       # Validate content
       latest_image = catalog["images"].find { |img| img["tag"] == "latest" }
-      expect(latest_image["name"]).to eq("apm-inject")
+      expect(catalog["repository_name"]).to eq("apm-inject")
       expect(latest_image["digest"]).to eq("sha256:5fcfe7ac14f6eeb0fe086ac7021d013d764af573b8c2d98113abf26b4d09b58c")
 
       # Validate schema compliance

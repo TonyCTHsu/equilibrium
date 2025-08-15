@@ -9,12 +9,12 @@ module Equilibrium
     def self.build_catalog(data)
       # Extract repository name, digests, and canonical versions from the validated data structure
       repository_name = data["repository_name"]
+      repository_url = data["repository_url"]
       digests = data["digests"]
       canonical_versions = data["canonical_versions"]
 
       images = digests.map do |tag, digest|
         {
-          "name" => repository_name,
           "tag" => tag,
           "digest" => digest,
           "canonical_version" => canonical_versions[tag]
@@ -22,16 +22,25 @@ module Equilibrium
       end
 
       {
+        "repository_url" => repository_url,
+        "repository_name" => repository_name,
         "images" => images
       }
     end
 
     def self.reverse_catalog(catalog_data)
       images = catalog_data["images"]
+      repository_url = catalog_data["repository_url"]
+      repository_name = catalog_data["repository_name"]
 
-      return {"repository_name" => "", "digests" => {}, "canonical_versions" => {}} if images.nil? || images.empty?
-
-      repository_name = images.first["name"]
+      if images.nil? || images.empty?
+        return {
+          "repository_url" => repository_url || "",
+          "repository_name" => repository_name || "",
+          "digests" => {},
+          "canonical_versions" => {}
+        }
+      end
 
       digests = {}
       canonical_versions = {}
@@ -43,11 +52,11 @@ module Equilibrium
       end
 
       {
-        "repository_url" => catalog_data["repository_url"],
+        "repository_url" => repository_url,
         "repository_name" => repository_name,
         "digests" => digests,
         "canonical_versions" => canonical_versions
-      }.compact
+      }
     end
   end
 end

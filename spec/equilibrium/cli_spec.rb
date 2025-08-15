@@ -190,12 +190,17 @@ RSpec.describe Equilibrium::CLI do
       expect(data["images"]).to be_an(Array)
       expect(data["images"].size).to eq(3)
 
+      # Check catalog structure
+      expect(data).to have_key("repository_name")
+      expect(data).to have_key("repository_url")
+      expect(data["repository_name"]).to eq("test-image")
+      expect(data["repository_url"]).to eq("gcr.io/test-project/test-image")
+
       # Check first image entry
       first_image = data["images"].first
-      expect(first_image).to have_key("name")
       expect(first_image).to have_key("tag")
       expect(first_image).to have_key("digest")
-      expect(first_image["name"]).to eq("test-image")
+      expect(first_image).to have_key("canonical_version")
     end
 
     it "validates input against expected/actual schema" do
@@ -222,21 +227,20 @@ RSpec.describe Equilibrium::CLI do
   describe "#uncatalog" do
     let(:sample_catalog_data) do
       {
+        "repository_url" => "gcr.io/test-project/test-image",
+        "repository_name" => "test-image",
         "images" => [
           {
-            "name" => "test-image",
             "tag" => "latest",
             "digest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
             "canonical_version" => "1.2.3"
           },
           {
-            "name" => "test-image",
             "tag" => "1",
             "digest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
             "canonical_version" => "1.2.3"
           },
           {
-            "name" => "test-image",
             "tag" => "1.2",
             "digest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
             "canonical_version" => "1.2.3"

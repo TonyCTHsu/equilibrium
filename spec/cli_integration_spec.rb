@@ -84,11 +84,16 @@ RSpec.describe "CLI Integration", type: :aruba do
       expect(output["images"]).to be_an(Array)
       expect(output["images"].size).to eq(3)
 
+      # Check catalog structure
+      expect(output).to have_key("repository_name")
+      expect(output).to have_key("repository_url")
+      expect(output["repository_name"]).to eq("test-image")
+      expect(output["repository_url"]).to eq("gcr.io/test-project/test-image")
+
       first_image = output["images"].first
-      expect(first_image).to have_key("name")
       expect(first_image).to have_key("tag")
       expect(first_image).to have_key("digest")
-      expect(first_image["name"]).to eq("test-image")
+      expect(first_image).to have_key("canonical_version")
     end
 
     it "reads from stdin when no file provided", :skip do

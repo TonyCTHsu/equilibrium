@@ -3,7 +3,7 @@
 module Equilibrium
   module Schemas
     # JSON Schema for expected/actual command output format
-    # Used by `equilibrium expected` and `equilibrium actual` commands
+    # Used by `expected`, `actual` and `uncatalog` commands
     #
     # Example output:
     # {
@@ -27,7 +27,7 @@ module Equilibrium
       "title" => "Equilibrium Expected/Actual Output Schema",
       "description" => "Schema for output from 'equilibrium expected' and 'equilibrium actual' commands",
       "type" => "object",
-      "required" => ["repository_name", "digests", "canonical_versions"],
+      "required" => ["repository_url", "repository_name", "digests", "canonical_versions"],
       "properties" => {
         "repository_url" => {
           "type" => "string",
