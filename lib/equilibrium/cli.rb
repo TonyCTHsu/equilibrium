@@ -8,6 +8,7 @@ require_relative "schemas/expected_actual"
 require_relative "schemas/catalog"
 require_relative "schemas/analyzer_output"
 require_relative "summary_formatter"
+require_relative "tags_operation_service"
 
 module Equilibrium
   class CLI < Thor
@@ -28,10 +29,10 @@ module Equilibrium
       analyzer = Analyzer.new
       analysis = analyzer.analyze(expected_data, actual_data)
 
+      validate_analyzer_output_schema(analysis)
+
       case options[:format]
       when "json"
-        # Validate output against analyzer schema before outputting
-        validate_analyzer_output_schema(analysis)
         puts JSON.pretty_generate(analysis)
       when "summary"
         formatter = SummaryFormatter.new
@@ -44,27 +45,11 @@ module Equilibrium
     desc "expected REPOSITORY_URL", "Output expected mutable tags to stdout"
     option :format, type: :string, default: "summary", enum: ["json", "summary"], desc: "Output format"
     def expected(registry)
-      client = RegistryClient.new
-      processor = TagProcessor.new
-
       full_repository_url = validate_repository_url(registry)
-      all_tags = client.list_tags(full_repository_url)
-      semantic_tags = processor.filter_semantic_tags(all_tags)
-      virtual_tags_result = processor.compute_virtual_tags(semantic_tags)
 
-      # Extract repository name from URL
-      repository_name = extract_repository_name(full_repository_url)
-
-      # Sort both digests and canonical_versions in descending order right before output
-      sorted_digests = TagSorter.sort_descending(virtual_tags_result["digests"])
-      sorted_canonical_versions = TagSorter.sort_descending(virtual_tags_result["canonical_versions"])
-
-      output = {
-        "repository_url" => full_repository_url,
-        "repository_name" => repository_name,
-        "digests" => sorted_digests,
-        "canonical_versions" => sorted_canonical_versions
-      }
+      # Generate complete expected output using high-level service
+      service = TagsOperationService.new
+      output = service.generate_expected_output(full_repository_url)
 
       # Validate output against schema before writing
       validate_expected_actual_schema(output)
@@ -87,37 +72,11 @@ module Equilibrium
     desc "actual REPOSITORY_URL", "Output actual mutable tags to stdout"
     option :format, type: :string, default: "summary", enum: ["json", "summary"], desc: "Output format"
     def actual(registry)
-      client = RegistryClient.new
-      processor = TagProcessor.new
-
       full_repository_url = validate_repository_url(registry)
-      all_tags = client.list_tags(full_repository_url)
-      mutable_tags = processor.filter_mutable_tags(all_tags)
 
-      # Get semantic tags to create canonical mapping for actual mutable tags
-      semantic_tags = processor.filter_semantic_tags(all_tags)
-      canonical_versions = {}
-
-      # For each actual mutable tag, find its canonical version by digest matching
-      mutable_tags.each do |mutable_tag, digest|
-        # Find semantic tag with same digest
-        canonical_version = semantic_tags.find { |_, sem_digest| sem_digest == digest }&.first
-        canonical_versions[mutable_tag] = canonical_version if canonical_version
-      end
-
-      # Extract repository name from URL
-      repository_name = extract_repository_name(full_repository_url)
-
-      # Sort both digests and canonical_versions in descending order right before output
-      sorted_digests = TagSorter.sort_descending(mutable_tags)
-      sorted_canonical_versions = TagSorter.sort_descending(canonical_versions)
-
-      output = {
-        "repository_url" => full_repository_url,
-        "repository_name" => repository_name,
-        "digests" => sorted_digests,
-        "canonical_versions" => sorted_canonical_versions
-      }
+      # Generate complete actual output using high-level service
+      service = TagsOperationService.new
+      output = service.generate_actual_output(full_repository_url)
 
       # Validate output against schema before writing
       validate_expected_actual_schema(output)
@@ -225,14 +184,6 @@ module Equilibrium
       end
 
       repository_url
-    end
-
-    def extract_repository_name(repository_url)
-      # Extract repository name from repository URL
-      # Examples:
-      #   gcr.io/project-id/repository-name -> repository-name
-      #   registry.com/namespace/repository-name -> repository-name
-      repository_url.split("/").last
     end
 
     def validate_expected_actual_schema(data)
