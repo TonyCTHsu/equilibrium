@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "json"
-require_relative "semantic_version"
 
 module Equilibrium
   class TagProcessor
@@ -9,12 +8,12 @@ module Equilibrium
       new.compute_virtual_tags(semantic_tags)
     end
 
-    def self.filter_semantic_tags(all_tags)
-      new.filter_semantic_tags(all_tags)
+    def self.filter_semantic_tags(tagged_digests)
+      new.filter_semantic_tags(tagged_digests)
     end
 
-    def self.filter_mutable_tags(all_tags)
-      new.filter_mutable_tags(all_tags)
+    def self.filter_mutable_tags(tagged_digests)
+      new.filter_mutable_tags(tagged_digests)
     end
 
     def compute_virtual_tags(semantic_tags)
@@ -64,26 +63,32 @@ module Equilibrium
       {"digests" => digests, "canonical_versions" => canonical_versions}
     end
 
-    def filter_semantic_tags(all_tags)
-      # Filter semantic tags (canonical_tags.json): exact major.minor.patch format
-      all_tags.select { |tag, _| semantic_version?(tag) }
+    def filter_semantic_tags(tagged_digests)
+      tagged_digests.select { |tag, _| semantic_version?(tag) }
     end
 
-    def filter_mutable_tags(all_tags)
-      # Filter mutable tags (actual_tags.json): latest, digits, or major.minor format
-      all_tags.select { |tag, _| mutable_tag?(tag) }
+    def filter_mutable_tags(tagged_digests)
+      tagged_digests.select { |tag, _| mutable_tag?(tag) }
     end
 
     private
 
     def semantic_version?(tag)
-      SemanticVersion.valid?(tag)
+      # Strictly validate MAJOR.MINOR.PATCH format where:
+      # - MAJOR, MINOR, PATCH are non-negative integers
+      # - No leading zeros (except for '0' itself)
+      # - No prefixes (like 'v1.2.3', 'release-1.2.3')
+      # - No suffixes (like '1.2.3-alpha', '1.2.3+build')
+      # - No prereleases (like '1.2.3-rc.1', '1.2.3-beta.2')
+      tag.match?(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/)
     end
 
     def mutable_tag?(tag)
-      tag.match?(/^latest$/) ||
-        tag.match?(/^[0-9]+$/) ||
-        tag.match?(/^[0-9]+\.[0-9]+$/)
+      # Validate mutable tags: latest, major versions (digits only), or major.minor format
+      # - 'latest' is the special case for the highest overall version
+      # - Major versions: non-negative integers without leading zeros (e.g., '1', '0', '42')
+      # - Minor versions: MAJOR.MINOR format with same zero-leading rules (e.g., '1.2', '0.9')
+      tag.match?(/^(latest|(0|[1-9]\d*)(\.(0|[1-9]\d*))?)$/)
     end
   end
 end

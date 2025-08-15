@@ -7,7 +7,6 @@ module Equilibrium
     class Error < StandardError; end
 
     def self.build_catalog(data)
-      # Extract repository name, digests, and canonical versions from the validated data structure
       repository_name = data["repository_name"]
       repository_url = data["repository_url"]
       digests = data["digests"]

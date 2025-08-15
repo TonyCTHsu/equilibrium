@@ -51,7 +51,10 @@ module Equilibrium
       "title" => "Equilibrium Analyzer Output Schema",
       "description" => "Schema for output from 'equilibrium analyze --format=json' command",
       "type" => "object",
-      "required" => ["repository_name", "expected_count", "actual_count", "missing_tags", "unexpected_tags", "mismatched_tags", "status", "remediation_plan"],
+      "required" => [
+        "repository_url",
+        "repository_name", "expected_count", "actual_count", "missing_tags", "unexpected_tags", "mismatched_tags", "status", "remediation_plan"
+      ],
       "properties" => {
         "repository_url" => {"type" => "string"},
         "repository_name" => {"type" => "string"},

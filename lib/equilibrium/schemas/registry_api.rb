@@ -24,7 +24,7 @@ module Equilibrium
       "title" => "Docker Registry v2 Tags List Response Schema",
       "description" => "Schema for response from Docker Registry v2 API /v2/{name}/tags/list endpoint",
       "type" => "object",
-      "required" => ["name", "tags"],
+      "required" => ["name", "tags", "manifest"],
       "properties" => {
         "name" => {
           "type" => "string",

@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "json"
+
 require_relative "../mixins/error_handling"
 require_relative "../mixins/input_output"
 require_relative "../schema_validator"
@@ -12,7 +14,6 @@ module Equilibrium
     class CatalogCommand
       include Mixins::ErrorHandling
       include Mixins::InputOutput
-      include Mixins::SchemaValidation
 
       # Execute the catalog command
       # @param file_path [String, nil] Optional file path, uses stdin if nil
@@ -22,7 +23,7 @@ module Equilibrium
           input = read_input_data(file_path, "No input provided. Use: equilibrium expected registry | equilibrium catalog")
 
           # Parse and validate JSON
-          data = parse_json(input, "input")
+          data = JSON.parse(input)
           SchemaValidator.validate!(data, Equilibrium::Schemas::EXPECTED_ACTUAL, error_prefix: "Schema validation failed")
 
           # Convert to catalog format

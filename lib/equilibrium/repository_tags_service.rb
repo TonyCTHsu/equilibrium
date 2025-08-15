@@ -5,30 +5,22 @@ require_relative "tag_processor"
 require_relative "canonical_version_mapper"
 
 module Equilibrium
-  # Service for retrieving and processing repository tag data
-  # Coordinates registry client and tag processor to generate expected/actual tag data
   class RepositoryTagsService
-    # Generate expected mutable tags based on semantic versions
-    # @param repository_url [String] Full repository URL
-    # @return [Hash] Expected tags with digests and canonical versions
     def self.generate_expected_tags(repository_url)
-      registry_client = RegistryClient.new
+      registry_client = RegistryClient.new(repository_url)
 
-      all_tags = registry_client.list_tags(repository_url)
-      semantic_tags = TagProcessor.filter_semantic_tags(all_tags)
+      tagged_digests = registry_client.tagged_digests
+      semantic_tags = TagProcessor.filter_semantic_tags(tagged_digests)
       TagProcessor.compute_virtual_tags(semantic_tags)
     end
 
-    # Generate actual mutable tags with canonical version mapping
-    # @param repository_url [String] Full repository URL
-    # @return [Hash] Actual tags with digests and canonical versions
     def self.generate_actual_tags(repository_url)
-      registry_client = RegistryClient.new
+      registry_client = RegistryClient.new(repository_url)
 
-      all_tags = registry_client.list_tags(repository_url)
-      mutable_tags = TagProcessor.filter_mutable_tags(all_tags)
-      semantic_tags = TagProcessor.filter_semantic_tags(all_tags)
+      tagged_digests = registry_client.tagged_digests
+      semantic_tags = TagProcessor.filter_semantic_tags(tagged_digests)
 
+      mutable_tags = TagProcessor.filter_mutable_tags(tagged_digests)
       canonical_versions = CanonicalVersionMapper.map_to_canonical_versions(mutable_tags, semantic_tags)
 
       {

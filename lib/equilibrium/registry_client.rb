@@ -52,10 +52,51 @@ module Equilibrium
   class RegistryClient
     class Error < StandardError; end
 
-    def list_tags(registry)
-      url = build_api_url(registry)
-      data = fetch_tags_data(url)
-      parse_response(data)
+    attr_reader :uri
+
+    def initialize(registry)
+      @registry = registry
+      @uri = URI(build_api_url(registry))
+    end
+
+    def tagged_digests
+      http = Net::HTTP.new(uri.host, uri.port)
+      http.use_ssl = true
+      http.read_timeout = 30
+      http.open_timeout = 10
+
+      response = http.request(Net::HTTP::Get.new(uri))
+
+      raise Error, "API request failed: #{response.code} #{response.message}" unless response.is_a?(Net::HTTPSuccess)
+
+      data = JSON.parse(response.body).tap do |json|
+        SchemaValidator.validate!(json, Equilibrium::Schemas::REGISTRY_API_RESPONSE, error_prefix: "Registry API response validation failed")
+      end
+
+      # Data is already validated by schema, safe to process
+      all_tags = data["tags"]
+
+      # The 'manifest' field is a non-standard extension provided by some registries (like GCR)
+      # Most registries (GHCR, Docker Hub, ECR) only return 'name' and 'tags' per Docker Registry v2 spec
+      # When manifest data is missing, digest information is not available from the tags endpoint
+      manifests = data.fetch("manifest")
+
+      # Build mapping from tag names to their SHA256 digests
+      # Only works when registry provides non-standard 'manifest' field in tags response
+      tag_to_digest = manifests.each_with_object({}) do |(digest, manifest_info), mapping|
+        tags_for_digest = manifest_info["tag"]
+        tags_for_digest.each { |tag| mapping[tag] = digest }
+      end
+
+      # Validate that all_tags from API response matches tag_to_digest keys
+      all_tags_set = all_tags.to_set
+      manifest_tags_set = tag_to_digest.keys.to_set
+
+      unless all_tags_set == manifest_tags_set
+        raise Error, "Tag mismatch: API tags #{all_tags_set.to_a.sort} != manifest tags #{manifest_tags_set.to_a.sort}"
+      end
+
+      tag_to_digest
     end
 
     private
@@ -67,58 +108,6 @@ module Equilibrium
       host, project, *image = parts
 
       "https://#{host}/v2/#{project}/#{image.join("/")}/tags/list"
-    end
-
-    def fetch_tags_data(url)
-      uri = URI(url)
-
-      http = Net::HTTP.new(uri.host, uri.port)
-      http.use_ssl = true
-      http.read_timeout = 30
-      http.open_timeout = 10
-
-      response = http.request(Net::HTTP::Get.new(uri))
-
-      raise Error, "API request failed: #{response.code} #{response.message}" unless response.is_a?(Net::HTTPSuccess)
-
-      data = JSON.parse(response.body)
-      validate_registry_response(data)
-      data
-    rescue JSON::ParserError => e
-      raise Error, "Invalid JSON response: #{e.message}"
-    rescue => e
-      raise Error, "Request failed: #{e.message}"
-    end
-
-    def validate_registry_response(data)
-      SchemaValidator.validate!(data, Equilibrium::Schemas::REGISTRY_API_RESPONSE, error_prefix: "Registry API response validation failed")
-    rescue SchemaValidator::ValidationError => e
-      raise Error, e.message
-    end
-
-    def parse_response(data)
-      # Data is already validated by schema, safe to process
-      tags = data["tags"]
-
-      # The 'manifest' field is a non-standard extension provided by some registries (like GCR)
-      # Most registries (GHCR, Docker Hub, ECR) only return 'name' and 'tags' per Docker Registry v2 spec
-      # When manifest data is missing, digest information is not available from the tags endpoint
-      tag_to_digest = build_digest_mapping(data["manifest"] || {})
-
-      tags.each_with_object({}) do |tag, result|
-        # Map tags to their digests. For registries without manifest data, digest will be nil
-        # This is expected behavior - digest info requires separate manifest API calls per tag
-        result[tag] = tag_to_digest[tag]
-      end
-    end
-
-    def build_digest_mapping(manifests)
-      # Build mapping from tag names to their SHA256 digests
-      # Only works when registry provides non-standard 'manifest' field in tags response
-      manifests.each_with_object({}) do |(digest, manifest_info), mapping|
-        tags = manifest_info["tag"]
-        tags.each { |tag| mapping[tag] = digest }
-      end
     end
   end
 end

@@ -16,10 +16,10 @@ module Equilibrium
       # Sort other tags by version (descending)
       other_tags = tags_hash.keys.reject { |k| k == "latest" }
       sorted_tags = other_tags.sort_by do |tag|
-        if major_version?(tag)
+        if tag.match?(/^[0-9]+$/)
           # Major version: sort by numeric value (descending)
           [-tag.to_i]
-        elsif minor_version?(tag)
+        elsif tag.match?(/^[0-9]+\.[0-9]+$/)
           # Minor version: sort by version (descending)
           parts = tag.split(".").map(&:to_i)
           [-parts[0], -parts[1]]
@@ -34,14 +34,6 @@ module Equilibrium
       end
 
       sorted
-    end
-
-    private_class_method def self.major_version?(tag)
-      tag.match?(/^[0-9]+$/)
-    end
-
-    def self.minor_version?(tag)
-      tag.match?(/^[0-9]+\.[0-9]+$/)
     end
   end
 end

@@ -8,7 +8,6 @@ module Equilibrium
       new.analyze(expected_data, actual_data)
     end
 
-    # Analyzes validated expected/actual data in schema format
     def analyze(expected_data, actual_data)
       # Extract digests from validated schema format
       expected_tags = expected_data["digests"]
@@ -53,7 +52,7 @@ module Equilibrium
           action: "create_tag",
           tag: tag,
           digest: digest,
-          command: repository_url ? "gcloud container images add-tag #{repository_url}@#{digest} #{repository_url}:#{tag}" : nil
+          command: "gcloud container images add-tag #{repository_url}@#{digest} #{repository_url}:#{tag}"
         }.compact
       end
 
@@ -63,7 +62,7 @@ module Equilibrium
           tag: tag,
           old_digest: data[:actual],
           new_digest: data[:expected],
-          command: repository_url ? "gcloud container images add-tag #{repository_url}@#{data[:expected]} #{repository_url}:#{tag}" : nil
+          command: "gcloud container images add-tag #{repository_url}@#{data[:expected]} #{repository_url}:#{tag}"
         }.compact
       end
 
@@ -72,7 +71,7 @@ module Equilibrium
           action: "remove_tag",
           tag: tag,
           digest: digest,
-          command: repository_url ? "gcloud container images untag #{repository_url}:#{tag}" : nil
+          command: "gcloud container images untag #{repository_url}:#{tag}"
         }.compact
       end
 

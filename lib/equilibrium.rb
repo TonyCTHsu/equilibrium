@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative "equilibrium/version"
-require_relative "equilibrium/semantic_version"
 require_relative "equilibrium/registry_client"
 require_relative "equilibrium/tag_processor"
 require_relative "equilibrium/tag_sorter"

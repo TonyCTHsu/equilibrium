@@ -15,7 +15,6 @@ A container image tool that validates equilibrium between mutable tags and seman
 - [Quick Start](#quick-start)
 - [Output Formats & Schemas](#output-formats--schemas)
 - [Constraints](#constraints)
-- [Examples](#examples)
 - [License](#license)
 
 ## The Problem
@@ -108,9 +107,9 @@ equilibrium expected "$REPO" --format json > expected.json
 equilibrium actual "$REPO" --format json > actual.json
 equilibrium analyze --expected expected.json --actual actual.json
 
-# 4. Convert to catalog format and back
-equilibrium expected "$REPO" --format json | equilibrium catalog
-echo '{"images":[...]}' | equilibrium uncatalog
+# 4. Convert to catalog format and back (Round trip)
+equilibrium catalog expected.json  | tee catalog.json
+equilibrium uncatalog catalog.json | tee uncatalog.json
 ```
 
 *For detailed command options, run `equilibrium help [command]`*
@@ -244,21 +243,20 @@ All commands output structured JSON following validated schemas (see [schemas](l
 **Catalog Command** ([schema](lib/equilibrium/schemas/catalog.rb)):
 ```json
 {
+  "repository_url": "gcr.io/project/image",
+  "repository_name": "image",
   "images": [
     {
-      "name": "image",
       "tag": "latest",
       "digest": "sha256:5fcfe7ac14f6eeb0fe086ac7021d013d764af573b8c2d98113abf26b4d09b58c",
       "canonical_version": "1.2.3"
     },
     {
-      "name": "image",
       "tag": "1",
       "digest": "sha256:5fcfe7ac14f6eeb0fe086ac7021d013d764af573b8c2d98113abf26b4d09b58c",
       "canonical_version": "1.2.3"
     },
     {
-      "name": "image",
       "tag": "1.2",
       "digest": "sha256:5fcfe7ac14f6eeb0fe086ac7021d013d764af573b8c2d98113abf26b4d09b58c",
       "canonical_version": "1.2.3"
@@ -277,69 +275,6 @@ Human-readable table format for quick visual inspection.
 - **Registry Support**: Public Google Container Registry (GCR) only
 - **Tag Format**: Only processes semantic version tags (MAJOR.MINOR.PATCH)
 - **URL Format**: Requires full repository URLs: `[REGISTRY_HOST]/[NAMESPACE]/[REPOSITORY]`
-
-## Examples
-
-### Example 1: Perfect Equilibrium
-```bash
-$ equilibrium expected gcr.io/google-containers/pause
-# Shows: latest→3.9, 3→3.9, 3.9→3.9
-
-$ equilibrium actual gcr.io/google-containers/pause
-# Shows: latest→3.9, 3→3.9, 3.9→3.9
-
-$ equilibrium analyze --expected expected.json --actual actual.json
-# Status: ✅ in_equilibrium
-```
-
-### Example 2: Out of Equilibrium
-```bash
-$ equilibrium expected gcr.io/project/myapp
-# Expected: latest→2.1.0, 1→1.5.3, 2→2.1.0, 2.1→2.1.0
-
-$ equilibrium actual gcr.io/project/myapp
-# Actual: latest→1.5.3, 1→1.5.3 (missing: 2, 2.1)
-
-$ equilibrium analyze --expected expected.json --actual actual.json
-# Status: ❌ out_of_equilibrium
-# Remediation: Create tags: 2→2.1.0, 2.1→2.1.0; Update: latest→2.1.0
-```
-
-### Example 3: Catalog Format Conversion
-```bash
-REPO="gcr.io/project/myapp"
-
-# Generate expected tags and convert to catalog format
-equilibrium expected "$REPO" --format json | equilibrium catalog > catalog.json
-
-# Verify catalog format
-cat catalog.json
-# Output: {"images": [{"name": "myapp", "tag": "latest", ...}, ...]}
-
-# Convert catalog back to expected/actual format
-equilibrium uncatalog catalog.json
-# Output: {"repository_name": "myapp", "digests": {...}, "canonical_versions": {...}}
-
-# Or using stdin
-cat catalog.json | equilibrium uncatalog
-```
-
-### Example 4: Automation Pipeline
-```bash
-#!/bin/bash
-REPO="gcr.io/project/image"
-
-# Daily equilibrium check
-equilibrium expected "$REPO" --format json > expected.json
-equilibrium actual "$REPO" --format json > actual.json
-equilibrium analyze --expected expected.json --actual actual.json --format json > report.json
-
-# Alert if out of equilibrium
-if grep -q '"status": "out_of_equilibrium"' report.json; then
-  echo "⚠️  Repository $REPO is out of equilibrium!"
-  equilibrium analyze --expected expected.json --actual actual.json
-fi
-```
 
 ## Development
 

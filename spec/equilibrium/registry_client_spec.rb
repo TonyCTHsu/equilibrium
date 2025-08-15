@@ -4,17 +4,17 @@ require_relative "../spec_helper"
 require_relative "../../lib/equilibrium/registry_client"
 
 RSpec.describe Equilibrium::RegistryClient do
-  let(:client) { described_class.new }
   let(:test_repository_url) { "gcr.io/test-project/test-image" }
+  let(:client) { described_class.new(test_repository_url) }
 
-  describe "#list_tags" do
+  describe "#tagged_digests" do
     context "with successful API response" do
       before do
         stub_registry_api(test_repository_url)
       end
 
       it "returns tag-to-digest mapping" do
-        result = client.list_tags(test_repository_url)
+        result = client.tagged_digests
 
         expect(result).to be_a(Hash)
         expect(result["latest"]).to match(/^sha256:[a-f0-9]{64}$/)
@@ -22,7 +22,7 @@ RSpec.describe Equilibrium::RegistryClient do
       end
 
       it "includes all tags from API response" do
-        result = client.list_tags(test_repository_url)
+        result = client.tagged_digests
 
         # Should include semantic version tags
         expect(result).to have_key("1.2.3")
@@ -36,7 +36,7 @@ RSpec.describe Equilibrium::RegistryClient do
       end
 
       it "maps tags to correct digests" do
-        result = client.list_tags(test_repository_url)
+        result = client.tagged_digests
 
         # Verify specific tag mappings from the manifest data
         expect(result["1.2.3"]).to eq("sha256:abc123def456789012345678901234567890123456789012345678901234abcd")
@@ -50,7 +50,7 @@ RSpec.describe Equilibrium::RegistryClient do
           .to_return(status: 404, body: "Not Found")
 
         expect {
-          client.list_tags(test_repository_url)
+          client.tagged_digests
         }.to raise_error(Equilibrium::RegistryClient::Error, /Request failed.*404/)
       end
 
@@ -59,7 +59,7 @@ RSpec.describe Equilibrium::RegistryClient do
           .to_raise(SocketError.new("getaddrinfo failed"))
 
         expect {
-          client.list_tags(test_repository_url)
+          client.tagged_digests
         }.to raise_error(Equilibrium::RegistryClient::Error, /Request failed.*getaddrinfo failed/)
       end
 
@@ -68,15 +68,16 @@ RSpec.describe Equilibrium::RegistryClient do
           .to_return(status: 200, body: "invalid json")
 
         expect {
-          client.list_tags(test_repository_url)
+          client.tagged_digests
         }.to raise_error(Equilibrium::RegistryClient::Error, /Invalid JSON response/)
       end
     end
 
     context "with invalid repository URL format" do
       it "handles repository URL with insufficient parts" do
+        invalid_client = described_class.new("gcr.io/only-one-part")
         expect {
-          client.list_tags("gcr.io/only-one-part")
+          invalid_client.tagged_digests
         }.to raise_error(Equilibrium::RegistryClient::Error, /Invalid GCR registry format/)
       end
     end
@@ -85,8 +86,9 @@ RSpec.describe Equilibrium::RegistryClient do
       it "works with different registry domains" do
         other_repo = "registry.example.com/namespace/image"
         stub_registry_api(other_repo)
+        other_client = described_class.new(other_repo)
 
-        result = client.list_tags(other_repo)
+        result = other_client.tagged_digests
         expect(result).to be_a(Hash)
       end
 
@@ -102,7 +104,8 @@ RSpec.describe Equilibrium::RegistryClient do
             }
           }.to_json)
 
-        result = client.list_tags(repo)
+        repo_client = described_class.new(repo)
+        result = repo_client.tagged_digests
         expect(result).to have_key("latest")
       end
     end
@@ -120,7 +123,8 @@ RSpec.describe Equilibrium::RegistryClient do
             }
           }.to_json)
 
-        result = client.list_tags(nested_repo)
+        nested_client = described_class.new(nested_repo)
+        result = nested_client.tagged_digests
         expect(result).to have_key("latest")
       end
     end

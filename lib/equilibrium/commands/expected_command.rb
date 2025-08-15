@@ -2,7 +2,7 @@
 
 require_relative "../mixins/error_handling"
 require_relative "../mixins/input_output"
-require_relative "../mixins/schema_validation"
+require_relative "../repository_url_validator"
 require_relative "../schema_validator"
 require_relative "../schemas/expected_actual"
 require_relative "../tags_operation_service"
@@ -13,14 +13,13 @@ module Equilibrium
     class ExpectedCommand
       include Mixins::ErrorHandling
       include Mixins::InputOutput
-      include Mixins::SchemaValidation
 
       # Execute the expected command
       # @param registry [String] Repository URL
       # @param options [Hash] Command options (format, etc.)
       def execute(registry, options = {})
         with_error_handling do
-          full_repository_url = validate_repository_url(registry)
+          full_repository_url = RepositoryUrlValidator.validate(registry)
 
           # Generate complete expected output using high-level service
           output = TagsOperationService.generate_expected_output(full_repository_url)

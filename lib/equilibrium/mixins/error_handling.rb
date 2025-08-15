@@ -8,8 +8,6 @@ module Equilibrium
   module Mixins
     # Module for consistent error handling across all commands
     module ErrorHandling
-      # Execute command with comprehensive error handling
-      # Handles all common error types consistently across all commands
       def with_error_handling(&block)
         block.call
       rescue Thor::Error
@@ -29,9 +27,6 @@ module Equilibrium
       # Exit with error message
       def error_and_exit(message, usage = nil)
         warn message
-        if usage
-          warn usage
-        end
         exit 1
       end
     end
