@@ -34,8 +34,7 @@ RSpec.describe Equilibrium::CLI do
       output = capture_stdout { cli.invoke(:expected, [test_repository_url], format: "json") }
       data = JSON.parse(output)
 
-      schemer = JSONSchemer.schema(Equilibrium::Schemas::EXPECTED_ACTUAL)
-      errors = schemer.validate(data).to_a
+      errors = Equilibrium::SchemaValidator.validate(data, Equilibrium::Schemas::EXPECTED_ACTUAL)
 
       expect(errors).to be_empty, "Schema validation failed: #{errors.map(&:to_s).join("; ")}"
     end
@@ -118,8 +117,7 @@ RSpec.describe Equilibrium::CLI do
       output = capture_stdout { cli.invoke(:actual, [test_repository_url], format: "json") }
       data = JSON.parse(output)
 
-      schemer = JSONSchemer.schema(Equilibrium::Schemas::EXPECTED_ACTUAL)
-      errors = schemer.validate(data).to_a
+      errors = Equilibrium::SchemaValidator.validate(data, Equilibrium::Schemas::EXPECTED_ACTUAL)
 
       expect(errors).to be_empty, "Schema validation failed: #{errors.map(&:to_s).join("; ")}"
     end
@@ -215,8 +213,7 @@ RSpec.describe Equilibrium::CLI do
       output = capture_stdout { cli.catalog }
       data = JSON.parse(output)
 
-      schemer = JSONSchemer.schema(Equilibrium::Schemas::CATALOG)
-      errors = schemer.validate(data).to_a
+      errors = Equilibrium::SchemaValidator.validate(data, Equilibrium::Schemas::CATALOG)
 
       expect(errors).to be_empty, "Catalog schema validation failed: #{errors.map(&:to_s).join("; ")}"
     end

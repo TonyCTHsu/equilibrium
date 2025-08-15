@@ -14,8 +14,7 @@ module Equilibrium
     # @param error_prefix [String] Prefix for error messages (optional)
     # @raise [ValidationError] If validation fails
     def self.validate!(data, schema, error_prefix: "Schema validation failed")
-      schemer = JSONSchemer.schema(schema)
-      errors = schemer.validate(data).to_a
+      errors = validate(data, schema)
 
       return if errors.empty?
 
@@ -24,6 +23,15 @@ module Equilibrium
       end
 
       raise ValidationError, "#{error_prefix}:\n#{error_messages.join("\n")}"
+    end
+
+    # Validates data against a JSON Schema and returns validation errors
+    # @param data [Hash] The data to validate
+    # @param schema [Hash] The JSON Schema to validate against
+    # @return [Array] Array of validation errors (empty if valid)
+    def self.validate(data, schema)
+      schemer = JSONSchemer.schema(schema)
+      schemer.validate(data).to_a
     end
   end
 end

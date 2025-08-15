@@ -73,8 +73,7 @@ RSpec.describe Equilibrium::CatalogBuilder do
     it "validates against catalog schema" do
       catalog = builder.build_catalog(sample_data)
 
-      schemer = JSONSchemer.schema(Equilibrium::Schemas::CATALOG)
-      errors = schemer.validate(catalog).to_a
+      errors = Equilibrium::SchemaValidator.validate(catalog, Equilibrium::Schemas::CATALOG)
 
       expect(errors).to be_empty, "Catalog schema validation failed: #{errors.map(&:to_s).join("; ")}"
     end
@@ -111,8 +110,7 @@ RSpec.describe Equilibrium::CatalogBuilder do
         ]
       }
 
-      schemer = JSONSchemer.schema(schema)
-      errors = schemer.validate(valid_catalog).to_a
+      errors = Equilibrium::SchemaValidator.validate(valid_catalog, Equilibrium::Schemas::CATALOG)
 
       expect(errors).to be_empty
     end
@@ -128,8 +126,7 @@ RSpec.describe Equilibrium::CatalogBuilder do
         ]
       }
 
-      schemer = JSONSchemer.schema(schema)
-      errors = schemer.validate(invalid_catalog).to_a
+      errors = Equilibrium::SchemaValidator.validate(invalid_catalog, schema)
 
       expect(errors).not_to be_empty
     end
@@ -146,8 +143,7 @@ RSpec.describe Equilibrium::CatalogBuilder do
         ]
       }
 
-      schemer = JSONSchemer.schema(schema)
-      errors = schemer.validate(invalid_catalog).to_a
+      errors = Equilibrium::SchemaValidator.validate(invalid_catalog, schema)
 
       expect(errors).not_to be_empty
     end
@@ -163,8 +159,7 @@ RSpec.describe Equilibrium::CatalogBuilder do
         ]
       }
 
-      schemer = JSONSchemer.schema(schema)
-      errors = schemer.validate(invalid_digest_catalog).to_a
+      errors = Equilibrium::SchemaValidator.validate(invalid_digest_catalog, schema)
 
       expect(errors).not_to be_empty
     end
@@ -172,8 +167,7 @@ RSpec.describe Equilibrium::CatalogBuilder do
     it "allows empty images array" do
       empty_catalog = {"images" => []}
 
-      schemer = JSONSchemer.schema(schema)
-      errors = schemer.validate(empty_catalog).to_a
+      errors = Equilibrium::SchemaValidator.validate(empty_catalog, schema)
 
       expect(errors).to be_empty
     end
@@ -300,8 +294,7 @@ RSpec.describe Equilibrium::CatalogBuilder do
       expect(latest_image["digest"]).to eq("sha256:5fcfe7ac14f6eeb0fe086ac7021d013d764af573b8c2d98113abf26b4d09b58c")
 
       # Validate schema compliance
-      schemer = JSONSchemer.schema(Equilibrium::Schemas::CATALOG)
-      errors = schemer.validate(catalog).to_a
+      errors = Equilibrium::SchemaValidator.validate(catalog, Equilibrium::Schemas::CATALOG)
       expect(errors).to be_empty
     end
 

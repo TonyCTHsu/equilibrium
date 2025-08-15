@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "json"
-require "json_schemer"
+require_relative "schema_validator"
 require_relative "schemas/catalog"
 
 module Equilibrium
@@ -59,12 +59,9 @@ module Equilibrium
     private
 
     def validate_catalog(catalog)
-      schemer = JSONSchemer.schema(Equilibrium::Schemas::CATALOG)
-      errors = schemer.validate(catalog).to_a
-
-      unless errors.empty?
-        raise Error, "Catalog validation failed: #{errors.map(&:to_s).join(", ")}"
-      end
+      SchemaValidator.validate!(catalog, Equilibrium::Schemas::CATALOG, error_prefix: "Catalog validation failed")
+    rescue SchemaValidator::ValidationError => e
+      raise Error, e.message
     end
   end
 end

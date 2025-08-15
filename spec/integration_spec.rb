@@ -81,8 +81,7 @@ RSpec.describe "Integration Tests" do
 
       # Validate expected output schema
       expected_data = JSON.parse(expected_output)
-      schemer = JSONSchemer.schema(Equilibrium::Schemas::EXPECTED_ACTUAL)
-      errors = schemer.validate(expected_data).to_a
+      errors = Equilibrium::SchemaValidator.validate(expected_data, Equilibrium::Schemas::EXPECTED_ACTUAL)
       expect(errors).to be_empty, "Expected output should pass schema validation"
 
       # Generate catalog and validate
@@ -92,8 +91,7 @@ RSpec.describe "Integration Tests" do
       end
 
       catalog_data = JSON.parse(catalog_output)
-      catalog_schemer = JSONSchemer.schema(Equilibrium::Schemas::CATALOG)
-      catalog_errors = catalog_schemer.validate(catalog_data).to_a
+      catalog_errors = Equilibrium::SchemaValidator.validate(catalog_data, Equilibrium::Schemas::CATALOG)
       expect(catalog_errors).to be_empty, "Catalog output should pass schema validation"
     end
   end
