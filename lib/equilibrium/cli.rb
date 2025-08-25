@@ -16,7 +16,7 @@ module Equilibrium
       true
     end
 
-    desc "analyze", "Compare expected vs actual tags and generate remediation plan"
+    desc "analyze", "Compare expected vs actual tags and show analysis report"
     option :expected, type: :string, required: true, desc: "Expected tags JSON file"
     option :actual, type: :string, required: true, desc: "Actual tags JSON file"
     option :registry, type: :string, desc: "Repository URL for output"

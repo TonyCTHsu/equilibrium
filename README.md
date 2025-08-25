@@ -53,7 +53,7 @@ flowchart LR
     H --> I[Compare<br/>Expected vs<br/>Actual]
     F --> I
 
-    I --> J[Analysis &<br/>Remediation<br/>Update: latest]
+    I --> J[Analysis Report<br/>Missing: 1<br/>Mismatched: latest]
 
     H --> K[catalog<br/>Command]
     K --> L[Catalog Format<br/>External Integration]
@@ -81,7 +81,7 @@ flowchart LR
 2. **Filter Semantic**: Extract only valid semantic version tags (MAJOR.MINOR.PATCH)
 3. **Compute Expected**: Generate mutable tags based on semantic versions
 4. **Fetch Actual**: Query registry for current mutable tag state
-5. **Compare & Analyze**: Identify mismatches and generate remediation plan
+5. **Compare & Analyze**: Identify missing, unexpected, and mismatched tags with unified structure
 6. **Format Conversion**: Transform between expected/actual and catalog formats for external integration
 
 ## Installation
@@ -102,7 +102,7 @@ equilibrium expected "$REPO"
 # 2. Check what mutable tags actually exist
 equilibrium actual "$REPO"
 
-# 3. Compare and get remediation plan
+# 3. Compare and analyze differences
 equilibrium expected "$REPO" --format json > expected.json
 equilibrium actual "$REPO" --format json > actual.json
 equilibrium analyze --expected expected.json --actual actual.json
@@ -209,36 +209,48 @@ All commands output structured JSON following validated schemas (see [schemas](l
 ```json
 {
   "repository_url": "gcr.io/project/image",
+  "repository_name": "image",
   "expected_count": 3,
   "actual_count": 2,
   "missing_tags": {
-    "1.2": "sha256:abc123ef456789012345678901234567890123456789012345678901234567890"
+    "1.2": {
+      "expected": "sha256:abc123ef456789012345678901234567890123456789012345678901234567890",
+      "actual": ""
+    }
   },
-  "unexpected_tags": {},
+  "unexpected_tags": {
+    "dev": {
+      "expected": "",
+      "actual": "sha256:xyz789ab123456789012345678901234567890123456789012345678901234"
+    }
+  },
   "mismatched_tags": {
     "latest": {
       "expected": "sha256:def456ab789123456789012345678901234567890123456789012345678901",
       "actual": "sha256:old123ef456789012345678901234567890123456789012345678901234567890"
     }
   },
-  "status": "missing_tags",
-  "remediation_plan": [
-    {
-      "action": "create_tag",
-      "tag": "1.2",
-      "digest": "sha256:abc123ef456789012345678901234567890123456789012345678901234567890",
-      "command": "gcloud container images add-tag gcr.io/project/image@sha256:abc123... gcr.io/project/image:1.2"
-    },
-    {
-      "action": "update_tag",
-      "tag": "latest",
-      "old_digest": "sha256:old123ef456789012345678901234567890123456789012345678901234567890",
-      "new_digest": "sha256:def456ab789123456789012345678901234567890123456789012345678901",
-      "command": "gcloud container images add-tag gcr.io/project/image@sha256:def456... gcr.io/project/image:latest"
-    }
-  ]
+  "status": "missing_tags"
 }
 ```
+
+#### Unified Tag Structure
+
+All tag analysis results (`missing_tags`, `unexpected_tags`, `mismatched_tags`) use a consistent structure:
+
+- **`missing_tags`**: Tags that should exist but don't
+  - `expected`: The SHA256 digest the tag should point to
+  - `actual`: Empty string (tag doesn't exist)
+
+- **`unexpected_tags`**: Tags that exist but shouldn't
+  - `expected`: Empty string (tag shouldn't exist)
+  - `actual`: The SHA256 digest the tag currently points to
+
+- **`mismatched_tags`**: Tags that exist but point to wrong digest
+  - `expected`: The SHA256 digest the tag should point to
+  - `actual`: The SHA256 digest the tag currently points to
+
+This unified structure makes programmatic processing easier and provides clear semantics about what was expected versus what was actually found.
 
 **Catalog Command** ([schema](lib/equilibrium/schemas/catalog.rb)):
 ```json

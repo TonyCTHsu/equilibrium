@@ -11,7 +11,7 @@ require_relative "../analyzer"
 
 module Equilibrium
   module Commands
-    # Command for analyzing expected vs actual tags and generating remediation plan
+    # Command for analyzing expected vs actual tags with unified structure
     class AnalyzeCommand
       include Mixins::ErrorHandling
       include Mixins::InputOutput
