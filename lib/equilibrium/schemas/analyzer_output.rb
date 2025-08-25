@@ -14,11 +14,10 @@ module Equilibrium
     #   "missing_tags": {},
     #   "unexpected_tags": {},
     #   "mismatched_tags": {},
-    #   "status": "perfect",
-    #   "remediation_plan": []
+    #   "status": "perfect"
     # }
     #
-    # Example output (requires remediation):
+    # Example output (with discrepancies):
     # {
     #   "repository_url": "gcr.io/datadoghq/example",
     #   "repository_name": "example",
@@ -36,15 +35,7 @@ module Equilibrium
     #       "actual": "sha256:old123ef456789..."
     #     }
     #   },
-    #   "status": "missing_tags",
-    #   "remediation_plan": [
-    #     {
-    #       "action": "create_tag",
-    #       "tag": "latest",
-    #       "digest": "sha256:abc123ef456789...",
-    #       "command": "gcloud container images add-tag gcr.io/datadoghq/example@sha256:abc123... gcr.io/datadoghq/example:latest"
-    #     }
-    #   ]
+    #   "status": "missing_tags"
     # }
     ANALYZER_OUTPUT = {
       "$schema" => "https://json-schema.org/draft/2020-12/schema",
@@ -53,7 +44,7 @@ module Equilibrium
       "type" => "object",
       "required" => [
         "repository_url",
-        "repository_name", "expected_count", "actual_count", "missing_tags", "unexpected_tags", "mismatched_tags", "status", "remediation_plan"
+        "repository_name", "expected_count", "actual_count", "missing_tags", "unexpected_tags", "mismatched_tags", "status"
       ],
       "properties" => {
         "repository_url" => {"type" => "string"},
@@ -83,21 +74,6 @@ module Equilibrium
                 "expected" => {"type" => "string", "pattern" => "^sha256:[a-f0-9]{64}$"},
                 "actual" => {"type" => "string", "pattern" => "^sha256:[a-f0-9]{64}$"}
               }
-            }
-          }
-        },
-        "remediation_plan" => {
-          "type" => "array",
-          "items" => {
-            "type" => "object",
-            "required" => ["action", "tag"],
-            "properties" => {
-              "action" => {"enum" => ["create_tag", "update_tag", "remove_tag"]},
-              "tag" => {"type" => "string"},
-              "digest" => {"type" => "string", "pattern" => "^sha256:[a-f0-9]{64}$"},
-              "old_digest" => {"type" => "string", "pattern" => "^sha256:[a-f0-9]{64}$"},
-              "new_digest" => {"type" => "string", "pattern" => "^sha256:[a-f0-9]{64}$"},
-              "command" => {"type" => "string"}
             }
           }
         }

@@ -26,7 +26,7 @@ module Equilibrium
       final_repository_name = expected_name
       final_repository_url = expected_url || actual_url
 
-      analysis = {
+      {
         repository_url: final_repository_url,
         repository_name: final_repository_name,
         expected_count: expected_tags.size,
@@ -36,47 +36,9 @@ module Equilibrium
         mismatched_tags: find_mismatched_tags(expected_tags, actual_tags),
         status: determine_status(expected_tags, actual_tags)
       }.compact
-
-      # Add remediation plan for JSON format
-      analysis[:remediation_plan] = generate_remediation_plan(analysis, final_repository_url, final_repository_name)
-      analysis
     end
 
     private
-
-    def generate_remediation_plan(analysis, repository_url, repository_name)
-      plan = []
-
-      analysis[:missing_tags].each do |tag, digest|
-        plan << {
-          action: "create_tag",
-          tag: tag,
-          digest: digest,
-          command: "gcloud container images add-tag #{repository_url}@#{digest} #{repository_url}:#{tag}"
-        }.compact
-      end
-
-      analysis[:mismatched_tags].each do |tag, data|
-        plan << {
-          action: "update_tag",
-          tag: tag,
-          old_digest: data[:actual],
-          new_digest: data[:expected],
-          command: "gcloud container images add-tag #{repository_url}@#{data[:expected]} #{repository_url}:#{tag}"
-        }.compact
-      end
-
-      analysis[:unexpected_tags].each do |tag, digest|
-        plan << {
-          action: "remove_tag",
-          tag: tag,
-          digest: digest,
-          command: "gcloud container images untag #{repository_url}:#{tag}"
-        }.compact
-      end
-
-      plan
-    end
 
     def find_missing_tags(expected, actual)
       expected.reject { |tag, digest| actual.key?(tag) }

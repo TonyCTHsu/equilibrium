@@ -132,7 +132,6 @@ RSpec.describe "CLI Integration", type: :aruba do
       expect(output["missing_tags"]).to be_empty
       expect(output["unexpected_tags"]).to be_empty
       expect(output["mismatched_tags"]).to be_empty
-      expect(output["remediation_plan"]).to be_empty
     end
 
     it "shows summary format by default" do

@@ -61,7 +61,6 @@ RSpec.describe "Integration Tests" do
       analysis_data = JSON.parse(analyze_output)
       expect(analysis_data).to have_key("status")
       expect(analysis_data).to have_key("repository_url")
-      expect(analysis_data).to have_key("remediation_plan")
     end
 
     it "handles validation errors correctly" do

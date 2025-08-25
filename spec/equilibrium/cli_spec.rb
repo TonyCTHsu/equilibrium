@@ -358,7 +358,6 @@ RSpec.describe Equilibrium::CLI do
       expect(data["missing_tags"]).to be_empty
       expect(data["unexpected_tags"]).to be_empty
       expect(data["mismatched_tags"]).to be_empty
-      expect(data["remediation_plan"]).to be_empty
     end
 
     it "detects missing tags" do
@@ -380,7 +379,6 @@ RSpec.describe Equilibrium::CLI do
       expect(data["status"]).to eq("missing_tags")
       expect(data["missing_tags"]).to have_key("1")
       expect(data["missing_tags"]).to have_key("1.2")
-      expect(data["remediation_plan"]).not_to be_empty
     end
 
     it "detects mismatched tags" do
