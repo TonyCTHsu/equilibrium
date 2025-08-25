@@ -1,0 +1,134 @@
+# Example GitLab CI configuration for using Equilibrium
+# Copy this file to .gitlab-ci.yml and customize for your needs
+
+stages:
+  - validate
+
+variables:
+  # Configure your container repository URL
+  CONTAINER_REPO: "gcr.io/datadoghq/apm-inject"
+  # Use the latest Equilibrium Docker image
+  EQUILIBRIUM_IMAGE: "ghcr.io/tonycthu/equilibrium:latest"
+
+# Basic equilibrium check
+equilibrium_basic:
+  stage: validate
+  image: ${EQUILIBRIUM_IMAGE}
+  script:
+    - echo "Checking equilibrium for ${CONTAINER_REPO}"
+    - equilibrium expected "${CONTAINER_REPO}" --format summary
+    - equilibrium actual "${CONTAINER_REPO}" --format summary
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+
+# Detailed analysis with JSON output
+equilibrium_analysis:
+  stage: validate
+  image: ${EQUILIBRIUM_IMAGE}
+  script:
+    - echo "Performing detailed equilibrium analysis for ${CONTAINER_REPO}"
+    - equilibrium expected "${CONTAINER_REPO}" --format json > expected.json
+    - equilibrium actual "${CONTAINER_REPO}" --format json > actual.json
+    - equilibrium analyze --expected expected.json --actual actual.json --format summary
+    - echo "Generating JSON analysis report"
+    - equilibrium analyze --expected expected.json --actual actual.json --format json > analysis.json
+  artifacts:
+    reports:
+      # Store analysis results as artifacts
+      junit: []
+    paths:
+      - expected.json
+      - actual.json
+      - analysis.json
+    expire_in: 1 week
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+
+# Multiple repository validation
+equilibrium_multi_repo:
+  stage: validate
+  image: ${EQUILIBRIUM_IMAGE}
+  parallel:
+    matrix:
+      - REPO: "gcr.io/datadoghq/apm-inject"
+      - REPO: "gcr.io/datadoghq/another-image"
+  script:
+    - echo "Checking equilibrium for ${REPO}"
+    - equilibrium expected "${REPO}" --format json > "expected_$(basename ${REPO}).json"
+    - equilibrium actual "${REPO}" --format json > "actual_$(basename ${REPO}).json"
+    - equilibrium analyze --expected "expected_$(basename ${REPO}).json" --actual "actual_$(basename ${REPO}).json" --format summary
+  artifacts:
+    paths:
+      - expected_*.json
+      - actual_*.json
+    expire_in: 3 days
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# Catalog format example for external integration
+equilibrium_catalog:
+  stage: validate
+  image: ${EQUILIBRIUM_IMAGE}
+  script:
+    - echo "Generating catalog format for external systems"
+    - equilibrium expected "${CONTAINER_REPO}" --format json | equilibrium catalog > catalog.json
+    - echo "Catalog generated, converting back to verify roundtrip"
+    - equilibrium uncatalog catalog.json > roundtrip.json
+    - echo "Roundtrip test completed"
+  artifacts:
+    paths:
+      - catalog.json
+      - roundtrip.json
+    expire_in: 1 day
+  rules:
+    - when: manual
+
+# Failure handling example
+equilibrium_with_failure_handling:
+  stage: validate
+  image: ${EQUILIBRIUM_IMAGE}
+  script:
+    - |
+      set +e  # Don't exit on failure
+      
+      echo "Running equilibrium analysis with error handling"
+      equilibrium expected "${CONTAINER_REPO}" --format json > expected.json
+      EXPECTED_EXIT=$?
+      
+      equilibrium actual "${CONTAINER_REPO}" --format json > actual.json  
+      ACTUAL_EXIT=$?
+      
+      if [ $EXPECTED_EXIT -ne 0 ] || [ $ACTUAL_EXIT -ne 0 ]; then
+        echo "Failed to fetch repository data"
+        exit 1
+      fi
+      
+      equilibrium analyze --expected expected.json --actual actual.json --format json > analysis.json
+      ANALYSIS_EXIT=$?
+      
+      if [ $ANALYSIS_EXIT -eq 0 ]; then
+        echo "Analysis completed successfully"
+        cat analysis.json | jq '.status'
+      else
+        echo "Analysis failed"
+        exit 1
+      fi
+  artifacts:
+    when: always
+    paths:
+      - expected.json
+      - actual.json
+      - analysis.json
+  rules:
+    - when: manual
+
+# Using specific Equilibrium version
+equilibrium_specific_version:
+  stage: validate
+  image: ghcr.io/tonycthu/equilibrium:v0.2.0  # Pin to specific version with v prefix
+  script:
+    - equilibrium version
+    - equilibrium expected "${CONTAINER_REPO}" --format summary
+  rules:
+    - when: manual

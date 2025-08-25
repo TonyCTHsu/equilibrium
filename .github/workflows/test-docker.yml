@@ -1,0 +1,93 @@
+name: Test Docker Build
+
+on:
+  push:
+    branches:
+      - docker  # Test on your current branch
+
+jobs:
+  test-source-build:
+    name: Test Source Build (Dockerfile)
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build source Dockerfile
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: equilibrium:source-test
+          load: true
+
+      - name: Test source build functionality
+        run: |
+          echo "Testing source build..."
+          docker run --rm equilibrium:source-test --help
+          docker run --rm equilibrium:source-test version
+          echo "✅ Source build completed successfully!"
+
+  test-optimized-build:
+    name: Test Optimized Build (Dockerfile.optimized)
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version
+          bundler-cache: true
+
+      - name: Build gem for optimized test
+        run: |
+          gem build equilibrium.gemspec
+          mkdir -p pkg
+          mv equilibrium-*.gem pkg/
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build optimized Dockerfile
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.optimized
+          push: false
+          tags: equilibrium:optimized-test
+          load: true
+
+      - name: Test optimized build functionality
+        run: |
+          echo "Testing optimized build..."
+          docker run --rm equilibrium:optimized-test --help
+          docker run --rm equilibrium:optimized-test version
+          echo "✅ Optimized build completed successfully!"
+
+      # Optional: Push test image for manual verification
+      # - name: Log in to GitHub Container Registry
+      #   if: github.ref == 'refs/heads/docker'
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: ghcr.io
+      #     username: ${{ github.actor }}
+      #     password: ${{ secrets.GITHUB_TOKEN }}
+
+      # - name: Push test image
+      #   if: github.ref == 'refs/heads/docker'
+      #   run: |
+      #     docker tag equilibrium:optimized-test ghcr.io/${{ github.repository }}:test-${{ github.sha }}
+      #     docker push ghcr.io/${{ github.repository }}:test-${{ github.sha }}
+      #     echo "🚀 Test image available: ghcr.io/${{ github.repository }}:test-${{ github.sha }}"

@@ -86,9 +86,30 @@ flowchart LR
 
 ## Installation
 
+### Ruby Gem (Local Development)
+
 ```bash
 gem install equilibrium
 ```
+
+### Docker Container (CI/CD)
+
+For GitLab CI/CD and other containerized environments, use the Docker image:
+
+```bash
+# Pull the latest version
+docker pull ghcr.io/tonycthu/equilibrium:latest
+
+# Run equilibrium commands
+docker run --rm ghcr.io/tonycthu/equilibrium:latest expected gcr.io/datadoghq/apm-inject
+docker run --rm ghcr.io/tonycthu/equilibrium:latest actual gcr.io/datadoghq/apm-inject
+```
+
+#### Docker Tags Available
+
+- `latest` - Latest stable release
+- `v0.2.0`, `v0.2`, `v0` - Semantic version tags with `v` prefix
+- Specific version tags (e.g., `v0.2.1`) for reproducible builds
 
 *For other installation methods, see `equilibrium help`*
 
@@ -113,6 +134,60 @@ equilibrium uncatalog catalog.json | tee uncatalog.json
 ```
 
 *For detailed command options, run `equilibrium help [command]`*
+
+## GitLab CI/CD Integration
+
+Equilibrium provides first-class support for GitLab CI/CD through Docker containers. This eliminates Ruby version conflicts and provides consistent execution across different CI environments.
+
+### Basic Usage
+
+```yaml
+# .gitlab-ci.yml
+stages:
+  - validate
+
+equilibrium_check:
+  stage: validate
+  image: ghcr.io/tonycthu/equilibrium:latest
+  script:
+    - equilibrium expected gcr.io/datadoghq/apm-inject --format summary
+    - equilibrium actual gcr.io/datadoghq/apm-inject --format summary
+```
+
+### Advanced Analysis with Artifacts
+
+```yaml
+equilibrium_analysis:
+  stage: validate
+  image: ghcr.io/tonycthu/equilibrium:latest
+  script:
+    - equilibrium expected "${CONTAINER_REPO}" --format json > expected.json
+    - equilibrium actual "${CONTAINER_REPO}" --format json > actual.json
+    - equilibrium analyze --expected expected.json --actual actual.json --format summary
+  artifacts:
+    paths:
+      - expected.json
+      - actual.json
+    expire_in: 1 week
+```
+
+### Multi-Repository Validation
+
+```yaml
+equilibrium_multi:
+  stage: validate
+  image: ghcr.io/tonycthu/equilibrium:latest
+  parallel:
+    matrix:
+      - REPO: "gcr.io/project1/image1"
+      - REPO: "gcr.io/project2/image2"
+  script:
+    - equilibrium expected "${REPO}" --format json > "expected_$(basename ${REPO}).json"
+    - equilibrium actual "${REPO}" --format json > "actual_$(basename ${REPO}).json"
+    - equilibrium analyze --expected "expected_$(basename ${REPO}).json" --actual "actual_$(basename ${REPO}).json"
+```
+
+See [`.gitlab-ci.yml.example`](.gitlab-ci.yml.example) for complete configuration examples including error handling, catalog format usage, and version pinning strategies.
 
 ## Tag Conversion Logic
 
@@ -287,6 +362,35 @@ Human-readable table format for quick visual inspection.
 - **Registry Support**: Public Google Container Registry (GCR) only
 - **Tag Format**: Only processes semantic version tags (MAJOR.MINOR.PATCH)
 - **URL Format**: Requires full repository URLs: `[REGISTRY_HOST]/[NAMESPACE]/[REPOSITORY]`
+
+## Container Usage Notes
+
+### Security Considerations
+- The Docker image runs as a non-root user (`equilibrium:equilibrium`) for security
+- Only requires outbound HTTPS access to container registries
+- No persistent storage or sensitive data handling
+
+### Image Details
+- **Base**: Ruby 3.2 Alpine Linux for minimal size
+- **Architecture**: Multi-arch support (linux/amd64, linux/arm64)
+- **Size**: ~50MB compressed
+- **Registry**: GitHub Container Registry (`ghcr.io`)
+
+### Troubleshooting
+
+#### Container Registry Access
+```bash
+# Test registry connectivity
+docker run --rm ghcr.io/tonycthu/equilibrium:latest expected gcr.io/datadoghq/apm-inject
+
+# Check image version
+docker run --rm ghcr.io/tonycthu/equilibrium:latest version
+```
+
+#### GitLab CI Issues
+- Ensure your GitLab runner has Docker capability
+- For private registries, configure appropriate authentication
+- Use specific version tags for reproducible builds
 
 ## Development
 

@@ -1,0 +1,33 @@
+# Optimized Dockerfile that uses pre-built gem artifact
+FROM ruby:3.2-alpine AS production
+
+# Install runtime dependencies only
+RUN apk add --no-cache \
+    ca-certificates \
+    curl
+
+# Create non-root user for security
+RUN addgroup -g 1001 equilibrium && \
+    adduser -D -u 1001 -G equilibrium equilibrium
+
+# Copy pre-built gem from GitHub Actions pkg/ directory
+COPY pkg/*.gem /tmp/
+
+# Install the gem (no build dependencies needed since gem is pre-built)
+RUN gem install --no-document /tmp/*.gem && \
+    rm /tmp/*.gem
+
+USER equilibrium
+
+# Set the entry point
+ENTRYPOINT ["equilibrium"]
+
+# Default command shows help
+CMD ["--help"]
+
+# Add labels for container metadata
+LABEL org.opencontainers.image.title="Equilibrium"
+LABEL org.opencontainers.image.description="Container image tag validation tool"
+LABEL org.opencontainers.image.vendor="Tony Hsu"
+LABEL org.opencontainers.image.licenses="MIT"
+LABEL org.opencontainers.image.source="https://github.com/TonyCTHsu/equilibrium"

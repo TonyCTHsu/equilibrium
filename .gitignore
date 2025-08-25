@@ -16,4 +16,6 @@ vendor/
 
 Gemfile.lock
 
+pkg/
+
 *.json
