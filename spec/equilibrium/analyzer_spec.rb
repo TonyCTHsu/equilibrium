@@ -81,7 +81,10 @@ RSpec.describe Equilibrium::Analyzer do
       expect(result[:status]).to eq("missing_tags")
       expect(result[:missing_tags]).to have_key("1")
       expect(result[:missing_tags]).to have_key("1.2")
-      expect(result[:missing_tags]["1"]).to eq(perfect_digest)
+      expect(result[:missing_tags]["1"][:expected]).to eq(perfect_digest)
+      expect(result[:missing_tags]["1"][:actual]).to eq("")
+      expect(result[:missing_tags]["1.2"][:expected]).to eq(perfect_digest)
+      expect(result[:missing_tags]["1.2"][:actual]).to eq("")
     end
 
     it "detects unexpected tags" do
@@ -106,7 +109,8 @@ RSpec.describe Equilibrium::Analyzer do
 
       expect(result[:status]).to eq("extra_tags")
       expect(result[:unexpected_tags]).to have_key("dev")
-      expect(result[:unexpected_tags]["dev"]).to eq(extra_digest)
+      expect(result[:unexpected_tags]["dev"][:expected]).to eq("")
+      expect(result[:unexpected_tags]["dev"][:actual]).to eq(extra_digest)
     end
 
     it "detects mismatched tags" do
@@ -154,7 +158,11 @@ RSpec.describe Equilibrium::Analyzer do
 
       expect(result[:status]).to eq("mismatched") # Prioritizes mismatched over missing
       expect(result[:missing_tags]).to have_key("1.2")
+      expect(result[:missing_tags]["1.2"][:expected]).to eq(perfect_digest)
+      expect(result[:missing_tags]["1.2"][:actual]).to eq("")
       expect(result[:unexpected_tags]).to have_key("dev")
+      expect(result[:unexpected_tags]["dev"][:expected]).to eq("")
+      expect(result[:unexpected_tags]["dev"][:actual]).to eq(extra_digest)
       expect(result[:mismatched_tags]).to have_key("1")
     end
 

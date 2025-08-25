@@ -379,6 +379,8 @@ RSpec.describe Equilibrium::CLI do
       expect(data["status"]).to eq("missing_tags")
       expect(data["missing_tags"]).to have_key("1")
       expect(data["missing_tags"]).to have_key("1.2")
+      expect(data["missing_tags"]["1"]["expected"]).to be_a(String)
+      expect(data["missing_tags"]["1"]["actual"]).to eq("")
     end
 
     it "detects mismatched tags" do

@@ -24,10 +24,16 @@ module Equilibrium
     #   "expected_count": 3,
     #   "actual_count": 2,
     #   "missing_tags": {
-    #     "latest": "sha256:abc123ef456789..."
+    #     "latest": {
+    #       "expected": "sha256:abc123ef456789...",
+    #       "actual": ""
+    #     }
     #   },
     #   "unexpected_tags": {
-    #     "dev": "sha256:xyz789ab123456..."
+    #     "dev": {
+    #       "expected": "",
+    #       "actual": "sha256:xyz789ab123456..."
+    #     }
     #   },
     #   "mismatched_tags": {
     #     "0.1": {
@@ -55,13 +61,27 @@ module Equilibrium
         "missing_tags" => {
           "type" => "object",
           "patternProperties" => {
-            ".*" => {"type" => "string", "pattern" => "^sha256:[a-f0-9]{64}$"}
+            ".*" => {
+              "type" => "object",
+              "required" => ["expected", "actual"],
+              "properties" => {
+                "expected" => {"type" => "string", "pattern" => "^sha256:[a-f0-9]{64}$"},
+                "actual" => {"type" => "string", "enum" => [""]}
+              }
+            }
           }
         },
         "unexpected_tags" => {
           "type" => "object",
           "patternProperties" => {
-            ".*" => {"type" => "string", "pattern" => "^sha256:[a-f0-9]{64}$"}
+            ".*" => {
+              "type" => "object",
+              "required" => ["expected", "actual"],
+              "properties" => {
+                "expected" => {"type" => "string", "enum" => [""]},
+                "actual" => {"type" => "string", "pattern" => "^sha256:[a-f0-9]{64}$"}
+              }
+            }
           }
         },
         "mismatched_tags" => {

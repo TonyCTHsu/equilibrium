@@ -41,11 +41,29 @@ module Equilibrium
     private
 
     def find_missing_tags(expected, actual)
-      expected.reject { |tag, digest| actual.key?(tag) }
+      missing = {}
+      expected.each do |tag, digest|
+        unless actual.key?(tag)
+          missing[tag] = {
+            expected: digest,
+            actual: ""
+          }
+        end
+      end
+      missing
     end
 
     def find_unexpected_tags(expected, actual)
-      actual.reject { |tag, _| expected.key?(tag) }
+      unexpected = {}
+      actual.each do |tag, digest|
+        unless expected.key?(tag)
+          unexpected[tag] = {
+            expected: "",
+            actual: digest
+          }
+        end
+      end
+      unexpected
     end
 
     def find_mismatched_tags(expected, actual)

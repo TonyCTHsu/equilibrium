@@ -43,9 +43,9 @@ module Equilibrium
         has_issues = true
         say "Missing Tags (should be created):"
         missing_table = [["Tag", "Should Point To"]]
-        analysis[:missing_tags].each do |tag, digest|
-          short_digest = digest ? digest.split(":").last[0..11] : "unknown"
-          missing_table << [tag, short_digest]
+        analysis[:missing_tags].each do |tag, details|
+          full_digest = details[:expected] || "unknown"
+          missing_table << [tag, full_digest]
         end
         print_table(missing_table, borders: true)
         say ""
@@ -58,10 +58,10 @@ module Equilibrium
         mismatched_table = [["Tag", "Expected", "Actual"]]
         analysis[:mismatched_tags].each do |tag, details|
           if details.is_a?(Hash)
-            expected = details[:expected] ? details[:expected].split(":").last[0..11] : "unknown"
-            actual = details[:actual] ? details[:actual].split(":").last[0..11] : "unknown"
+            expected = details[:expected] || "unknown"
+            actual = details[:actual] || "unknown"
           else
-            expected = details ? details.split(":").last[0..11] : "unknown"
+            expected = details || "unknown"
             actual = "unknown"
           end
           mismatched_table << [tag, expected, actual]
@@ -75,17 +75,17 @@ module Equilibrium
         has_issues = true
         say "Unexpected Tags (should be removed):"
         unexpected_table = [["Tag", "Currently Points To"]]
-        analysis[:unexpected_tags].each do |tag, digest|
-          short_digest = digest ? digest.split(":").last[0..11] : "unknown"
-          unexpected_table << [tag, short_digest]
+        analysis[:unexpected_tags].each do |tag, details|
+          full_digest = details[:actual] || "unknown"
+          unexpected_table << [tag, full_digest]
         end
         print_table(unexpected_table, borders: true)
         say ""
       end
 
       if has_issues
-        say "To see detailed remediation commands, use:"
-        say "  equilibrium analyze --expected expected.json --actual actual.json --format=json | jq '.remediation_plan'"
+        say "To see detailed analysis data, use:"
+        say "  equilibrium analyze --expected expected.json --actual actual.json --format=json"
       else
         say "✓ Registry is in perfect equilibrium!", :green
       end
