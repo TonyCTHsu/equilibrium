@@ -1,5 +1,5 @@
 # Dockerfile for Equilibrium container image
-FROM ruby:3.4
+FROM ruby:3.4.5
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \

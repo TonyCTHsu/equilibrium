@@ -1,0 +1,22 @@
+#!/bin/bash
+set -euo pipefail
+
+# Build local Docker image for Equilibrium
+# Based on the documentation in README.md
+
+echo "Building Equilibrium Docker image locally..."
+
+# Clean and rebuild gem using the same method as CI
+echo "Cleaning previous builds..."
+bundle exec rake clobber
+
+echo "Building gem..."
+bundle exec rake build
+
+# Build Docker image
+echo "Building Docker image..."
+podman build -f docker/Dockerfile -t equilibrium:local .
+
+# Test the local build
+echo "Testing local build..."
+podman run --rm localhost/equilibrium:local equilibrium version
