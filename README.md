@@ -90,6 +90,13 @@ flowchart LR
 gem install equilibrium
 ```
 
+For containerized environments, use the Docker image:
+
+```bash
+# Pull the latest version
+docker pull ghcr.io/tonycthsu/equilibrium:latest
+```
+
 *For other installation methods, see `equilibrium help`*
 
 ## Quick Start
@@ -287,6 +294,24 @@ Human-readable table format for quick visual inspection.
 - **Registry Support**: Public Google Container Registry (GCR) only
 - **Tag Format**: Only processes semantic version tags (MAJOR.MINOR.PATCH)
 - **URL Format**: Requires full repository URLs: `[REGISTRY_HOST]/[NAMESPACE]/[REPOSITORY]`
+
+### Local Image Build
+
+To build the Docker image locally, you need the gem artifact in the `pkg/` directory:
+
+```bash
+# Build the gem using the same method as CI
+bundle exec rake clobber  # Clean previous builds
+bundle exec rake build    # Rebuild gem
+
+# Build image
+podman build -f docker/Dockerfile -t equilibrium:local .
+
+# Test the local build
+podman run --rm localhost/equilibrium:local equilibrium version
+```
+
+**Note**: The Dockerfile expects the gem artifact in `pkg/*.gem`. Using `bundle exec rake build` ensures you build the gem exactly the same way as the CI pipeline.
 
 ## Development
 

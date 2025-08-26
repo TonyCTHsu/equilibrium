@@ -1,0 +1,36 @@
+# Git and version control
+.git
+.gitignore
+
+# Documentation
+README.md
+CHANGELOG.md
+CLAUDE.local.md
+
+# Development files
+.github
+bin/release
+Rakefile
+
+# Test files and fixtures
+spec/
+tmp/
+
+# # Build artifacts
+# pkg/
+# *.gem
+
+# Local data files
+*.json
+raw-analysis.json
+
+# IDE files
+.vscode/
+.idea/
+
+# Ruby/Bundler
+.bundle/
+vendor/bundle/
+
+# macOS
+.DS_Store
