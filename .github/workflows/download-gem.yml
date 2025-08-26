@@ -18,22 +18,21 @@ jobs:
         with:
           ruby-version: 3.2.8
       - run: gem --version
-      - run: |
-          gem sources --clear-all --verbose
-          gem sources --list
-
-      - name: Configure gem source for GitHub Packages
+      - name: Download published gem
+        env:
+          GEM_HOST_API_KEY: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gem sources --add https://TonyCTHsu:${{ secrets.GITHUB_TOKEN }}@rubygems.pkg.github.com/TonyCTHsu
-          gem sources --list
+          mkdir -p pkg
+          gem fetch equilibrium --version 0.2.0 \
+            --source https://rubygems.pkg.github.com/${{ github.repository_owner }} \
+            --clear-sources \
+            --verbose
+          mv equilibrium-*.gem pkg/
 
-      - name: Download gem via fetch
-        run: |
-          gem fetch equilibrium --source https://rubygems.pkg.github.com/TonyCTHsu --verbose
 
-      - name: Download gem via download
-        run: |
-          gem install equilibrium --source https://rubygems.pkg.github.com/TonyCTHsu --verbose
+      # - name: Download gem via download
+      #   run: |
+      #     gem install equilibrium --source https://rubygems.pkg.github.com/TonyCTHsu --verbose
 
 
   download-via-bundler:
