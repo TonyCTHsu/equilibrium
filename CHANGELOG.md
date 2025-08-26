@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2025-08-26
+
+### Fixed
+- Fix changelog format
+
 ## [0.3.0] - 2025-08-26
 
 ### Added
@@ -16,8 +21,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use Ruby 3.4.5
 - Unified tag structures across analyze command output
 - Improved summary format for better readability and consistency
-
-### Removed
 - Remove remediation_plan field from analyze command output
 
 ## [0.2.0] - 2025-08-15
@@ -67,6 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Detailed architecture overview and data flow diagrams
 - Complete command reference and examples
 
+[0.3.1]: https://github.com/TonyCTHsu/equilibrium/releases/tag/v0.3.1
 [0.3.0]: https://github.com/TonyCTHsu/equilibrium/releases/tag/v0.3.0
 [0.2.0]: https://github.com/TonyCTHsu/equilibrium/releases/tag/v0.2.0
 [0.1.1]: https://github.com/TonyCTHsu/equilibrium/releases/tag/v0.1.1
