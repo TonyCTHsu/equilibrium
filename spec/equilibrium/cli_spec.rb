@@ -292,6 +292,14 @@ RSpec.describe Equilibrium::CLI do
       }.to raise_error(SystemExit)
     end
 
+    it "handles invalid JSON input gracefully" do
+      allow($stdin).to receive(:read).and_return("invalid json {")
+
+      expect {
+        capture_stdout { cli.uncatalog }
+      }.to raise_error(SystemExit)
+    end
+
     it "roundtrip conversion preserves data" do
       # Start with expected/actual format, convert to catalog and back
       original_data = {
@@ -424,6 +432,81 @@ RSpec.describe Equilibrium::CLI do
       expect(output).to include("Repository URL: #{test_repository_url}")
       expect(output).to include("Status: PERFECT")
       expect(output).to include("✓ Registry is in perfect equilibrium!")
+    end
+
+    it "shows missing tags in summary format" do
+      actual_data_missing = {
+        "repository_url" => test_repository_url,
+        "repository_name" => "test-image",
+        "digests" => {"latest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd"},
+        "canonical_versions" => {"latest" => "1.2.3"}
+      }
+
+      expected_file = create_temp_json_file(expected_data)
+      actual_file = create_temp_json_file(actual_data_missing)
+
+      output = capture_stdout do
+        cli.invoke(:analyze, [], expected: expected_file, actual: actual_file, format: "summary")
+      end
+
+      expect(output).to include("Missing Tags (should be created):")
+      expect(output).to include("To see detailed analysis data, use:")
+    end
+
+    it "shows mismatched tags in summary format" do
+      actual_data_mismatched = {
+        "repository_url" => test_repository_url,
+        "repository_name" => "test-image",
+        "digests" => {
+          "latest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
+          "1" => "sha256:abcdef123456789012345678901234567890123456789012345678901234567a",
+          "1.2" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd"
+        },
+        "canonical_versions" => {
+          "latest" => "1.2.3",
+          "1" => "1.0.0",
+          "1.2" => "1.2.3"
+        }
+      }
+
+      expected_file = create_temp_json_file(expected_data)
+      actual_file = create_temp_json_file(actual_data_mismatched)
+
+      output = capture_stdout do
+        cli.invoke(:analyze, [], expected: expected_file, actual: actual_file, format: "summary")
+      end
+
+      expect(output).to include("Mismatched Tags (pointing to wrong version):")
+      expect(output).to include("To see detailed analysis data, use:")
+    end
+
+    it "shows unexpected tags in summary format" do
+      actual_data_unexpected = {
+        "repository_url" => test_repository_url,
+        "repository_name" => "test-image",
+        "digests" => {
+          "latest" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
+          "1" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
+          "1.2" => "sha256:abc123def456789012345678901234567890123456789012345678901234abcd",
+          "2" => "sha256:abcd123456789012345678901234567890123456789012345678901234567890"
+        },
+        "canonical_versions" => {
+          "latest" => "1.2.3",
+          "1" => "1.2.3",
+          "1.2" => "1.2.3",
+          "2" => "2.0.0"
+        }
+      }
+
+      expected_file = create_temp_json_file(expected_data)
+      actual_file = create_temp_json_file(actual_data_unexpected)
+
+      output = capture_stdout do
+        cli.invoke(:analyze, [], expected: expected_file, actual: actual_file, format: "summary")
+      end
+
+      expect(output).to include("Unexpected Tags (should be removed):")
+      expect(output).to include("To see detailed analysis data, use:")
     end
   end
 

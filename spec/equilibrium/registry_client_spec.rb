@@ -126,6 +126,23 @@ RSpec.describe Equilibrium::RegistryClient do
         result = nested_client.tagged_digests
         expect(result).to have_key("latest")
       end
+
+      it "handles tag mismatch between API and manifest" do
+        nested_repo = "gcr.io/project/namespace/sub-namespace/image"
+
+        stub_request(:get, "https://gcr.io/v2/project/namespace/sub-namespace/image/tags/list")
+          .to_return(status: 200, body: {
+            "name" => nested_repo,
+            "tags" => ["latest", "1.0.0"],
+            "manifest" => {
+              "sha256:abc123def456789012345678901234567890123456789012345678901234abcd" => {"tag" => ["latest"]}
+              # Missing 1.0.0 in manifest - creates mismatch
+            }
+          }.to_json)
+
+        repo_client = described_class.new(nested_repo)
+        expect { repo_client.tagged_digests }.to raise_error(Equilibrium::RegistryClient::Error, /Tag mismatch/)
+      end
     end
   end
 
