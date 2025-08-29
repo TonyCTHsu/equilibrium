@@ -9,4 +9,5 @@ group :development, :test do
   gem "webmock", "~> 3.0"
   gem "rspec", "~> 3.0"
   gem "aruba", "~> 2.0"
+  gem "simplecov", "~> 0.22.0", require: false
 end

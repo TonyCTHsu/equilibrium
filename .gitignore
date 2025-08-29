@@ -19,3 +19,5 @@ Gemfile.lock
 pkg/
 
 *.json
+
+coverage/
