@@ -2,6 +2,7 @@
 
 [![Gem Version](https://badge.fury.io/rb/equilibrium.svg)](https://badge.fury.io/rb/equilibrium)
 [![GitHub Actions](https://github.com/TonyCTHsu/equilibrium/workflows/CI/badge.svg)](https://github.com/TonyCTHsu/equilibrium/actions)
+[![codecov](https://codecov.io/gh/TonyCTHsu/equilibrium/branch/master/graph/badge.svg)](https://codecov.io/gh/TonyCTHsu/equilibrium)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A container image tool that validates equilibrium between mutable tags and semantic version tags.
